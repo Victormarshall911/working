@@ -74,11 +74,7 @@
                                 <i class="fas fa-sign-in-alt"></i> Login
                             </button>
 
-                            <div class="demo-credentials">
-                                <h3><i class="fas fa-info-circle"></i> Demo Credentials:</h3>
-                                <p><strong>Admin:</strong> admin / admin123</p>
-                                <p><strong>User:</strong> user1 / user123</p>
-                            </div>
+                            
                         </form>
 
                         <div class="login-footer">
@@ -231,7 +227,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="newMemberId"><i class="fas fa-id-card"></i> Member ID *</label>
-                        <input type="text" id="newMemberId" placeholder="e.g. 101 or A-05" required>
+                        <input type="text" id="newMemberId" placeholder="e.g. 001 or 101" required>
                     </div>
                 </div>
 
@@ -248,8 +244,8 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="newPhone"><i class="fas fa-phone"></i> Phone Number *</label>
-                        <input type="tel" id="newPhone" placeholder="080..." required>
+                        <label for="newPhone"><i class="fas fa-phone"></i> Phone Number</label>
+                        <input type="tel" id="newPhone" placeholder="080...">
                     </div>
                     <div class="form-group">
                         <label for="dailyProposedAmount"><i class="fas fa-money-bill-wave"></i> Daily Contribution (₦) *</label>
@@ -266,52 +262,52 @@
 </div>
 
         <div class="modal-overlay calendar-modal" id="depositModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-money-bill-wave"></i> Manage Deposits</h3>
-                    <button class="modal-close" id="closeDepositModal">&times;</button>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-money-bill-wave"></i> Manage Deposits</h3>
+            <button class="modal-close" id="closeDepositModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="user-info-header">
+                <div>
+                    <h4 id="depositUserName">Loading user...</h4>
+                    <p class="proposed-amount-display" id="depositUserAmount">Daily Amount: ₦0</p>
                 </div>
-                <div class="modal-body">
-                    <div class="user-info-header">
-                        <div>
-                            <h4 id="depositUserName">Loading user...</h4>
-                            <p class="proposed-amount-display" id="depositUserAmount">Daily Amount: ₦0</p>
-                        </div>
-                        <div class="year-selector">
-                            <label for="depositYearSelect"><i class="fas fa-calendar"></i> Year:</label>
-                            <select id="depositYearSelect"></select>
-                        </div>
-                    </div>
-
-                    <div class="calendar-controls">
-                        <button class="btn-action btn-edit" id="saveDepositsBtn">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
-                        <div class="legend">
-                            <span class="legend-item deposited">
-                                <i class="fas fa-square"></i> Deposited
-                            </span>
-                            <span class="legend-item not-deposited">
-                                <i class="fas fa-square"></i> Not Deposited
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="months-container" id="depositMonthsContainer"></div>
+                <div class="year-selector">
+                    <label for="depositYearSelect"><i class="fas fa-layer-group"></i> Session:</label>
+                    <select id="depositYearSelect"></select>
                 </div>
-                <div class="modal-footer">
-                    <div class="modal-footer-content">
-                        <div class="totals">
-                            <strong>Yearly Total:</strong> <span id="depositYearlyTotal">₦0</span>
-                        </div>
-                        <div class="modal-buttons">
-                            <button type="button" class="btn-cancel" id="cancelDepositModal">Cancel</button>
-                            <button type="button" class="btn-save" id="confirmDepositModal">Confirm Deposits</button>
-                        </div>
-                    </div>
+            </div>
+
+            <div class="calendar-controls">
+                <button class="btn-action btn-edit" id="saveDepositsBtn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <div class="legend">
+                    <span class="legend-item deposited">
+                        <i class="fas fa-square"></i> Deposited
+                    </span>
+                    <span class="legend-item not-deposited">
+                        <i class="fas fa-square"></i> Not Deposited
+                    </span>
+                </div>
+            </div>
+
+            <div class="months-container" id="depositMonthsContainer"></div>
+        </div>
+        <div class="modal-footer">
+            <div class="modal-footer-content">
+                <div class="totals">
+                    <strong>Yearly Total:</strong> <span id="depositYearlyTotal">₦0</span>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" id="cancelDepositModal">Cancel</button>
+                    <button type="button" class="btn-save" id="confirmDepositModal">Confirm Deposits</button>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
 <div class="modal-overlay calendar-modal" id="withdrawalModal">
     <div class="modal-content">
@@ -475,12 +471,10 @@
                         <table class="transaction-table">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
                                     <th>Transaction ID</th>
                                     <th>Description</th>
                                     <th>Amount</th>
                                     <th>Type</th>
-                                    <th>Balance After</th>
                                 </tr>
                             </thead>
                             <tbody id="transactionTableBody"></tbody>

@@ -372,15 +372,22 @@ async function openDepositManager(userId, userName, dailyAmount) {
     document.getElementById('depositUserName').textContent = userName;
     document.getElementById('depositUserAmount').textContent = `Daily Amount: ₦${dailyAmount.toLocaleString()}`;
     
-    // Populate Year Select (Acts as "Start Year")
+    // Populate SESSION Selector
     const yearSelect = document.getElementById('depositYearSelect');
     yearSelect.innerHTML = '';
-    // Show range of years
-    for(let i = 2024; i <= 2030; i++) {
+    
+    // CONFIGURATION: 2025 is Session 1
+    const baseYear = 2025; 
+
+    // Generate 10 Sessions (Session 1 to Session 10)
+    for(let i = 0; i < 10; i++) {
+        const loopYear = baseYear + i;
         const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = `Cycle Start: ${i}`; // Changed label
-        if(i === currentYear) opt.selected = true;
+        opt.value = loopYear; // Value sent to DB is the real year
+        opt.textContent = `Session ${i + 1}`; // Display is "Session X"
+        
+        // Auto-select the current year
+        if(loopYear === currentYear) opt.selected = true;
         yearSelect.appendChild(opt);
     }
 
@@ -603,6 +610,9 @@ function filterUsers(query) {
 // ==========================================
 // 9. USER DASHBOARD LOGIC (Safe Version)
 // ==========================================
+// ==========================================
+// 9. USER DASHBOARD LOGIC (Safe Version)
+// ==========================================
 async function loadUserDashboard() {
     try {
         // 1. Show User Page
@@ -644,7 +654,6 @@ async function loadUserDashboard() {
                 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${tx.transaction_date}</td>
                     <td>#${tx.id.slice(0, 8)}</td>
                     <td>${tx.description || tx.type}</td>
                     <td>₦${Number(tx.amount).toLocaleString()}</td>
@@ -654,7 +663,7 @@ async function loadUserDashboard() {
                 tbody.appendChild(tr);
             });
         } else {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No recent transactions.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No recent transactions.</td></tr>';
         }
 
         // 6. Update Summary Stats
