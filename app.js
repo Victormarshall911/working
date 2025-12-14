@@ -613,6 +613,9 @@ function filterUsers(query) {
 // ==========================================
 // 9. USER DASHBOARD LOGIC (Safe Version)
 // ==========================================
+// ==========================================
+// 9. USER DASHBOARD LOGIC (Safe Version)
+// ==========================================
 async function loadUserDashboard() {
     try {
         // 1. Show User Page
@@ -628,7 +631,6 @@ async function loadUserDashboard() {
         document.getElementById('currentUserName').textContent = fullName;
         document.getElementById('displayUserName').textContent = fullName;
         
-        // Update Member ID in Sidebar (Find the element with class .user-id)
         const idElement = document.querySelector('.user-id');
         if(idElement) idElement.textContent = `Member ID: ${memberId}`;
 
@@ -658,12 +660,12 @@ async function loadUserDashboard() {
                     <td>${tx.description || tx.type}</td>
                     <td>₦${Number(tx.amount).toLocaleString()}</td>
                     <td><span class="${tx.type === 'deposit' ? 'type-deposit' : 'type-withdrawal'}">${tx.type}</span></td>
-                    <td>-</td>
                 `;
                 tbody.appendChild(tr);
             });
         } else {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No recent transactions.</td></tr>';
+            // Updated colspan to 4 since we removed columns
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No recent transactions.</td></tr>';
         }
 
         // 6. Update Summary Stats
@@ -672,7 +674,6 @@ async function loadUserDashboard() {
     } catch (err) {
         console.error("Dashboard Error:", err);
         alert("Error loading dashboard data. Please verify your internet connection.");
-        // Ensure page is visible even if data fails
         userPage.style.display = 'block';
     }
 }
