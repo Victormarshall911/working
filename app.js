@@ -139,26 +139,32 @@ function renderUserTable(usersToRender = null) {
     const end = start + itemsPerPage;
     const paginatedItems = list.slice(start, end);
 
-    document.getElementById('pageIndicator').textContent = `Page ${currentPage} of ${totalPages || 1}`;
+    const pageIndicator = document.getElementById('pageIndicator');
+    if(pageIndicator) pageIndicator.textContent = `Page ${currentPage} of ${totalPages || 1}`;
+
     document.getElementById('prevPageBtn').disabled = currentPage === 1;
     document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
 
     paginatedItems.forEach(user => {
+        // --- MISSING LINES ADDED HERE ---
+        // We must define these variables before using them in the HTML below
+        const daily = Number(user.daily_amount) || 0;
+        const balance = Number(user.balance) || 0;
+        // --------------------------------
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>#${user.id.slice(0, 6)}</td>
+            <td>${user.member_id || '-'}</td> 
             <td>${user.full_name}</td>
             <td>${user.username}</td>
             <td>${user.email || '-'}</td>
-            <td>₦${user.daily_amount}</td>
-            <td>₦${user.balance.toLocaleString()}</td>
-            <td>-</td>
+            <td>₦${daily.toLocaleString()}</td>   <td>₦${balance.toLocaleString()}</td> <td>-</td>
             <td><span class="status-active"><i class="fas fa-circle"></i> Active</span></td>
             <td>
-                <button class="btn-action btn-edit" title="Manage Deposits" onclick="openDepositManager('${user.id}', '${user.full_name}', ${user.daily_amount})">
+                <button class="btn-action btn-edit" title="Manage Deposits" onclick="openDepositManager('${user.id}', '${user.full_name}', ${daily})">
                     <i class="fas fa-plus-circle"></i>
                 </button>
-                <button class="btn-action btn-delete" title="Manage Withdrawals" onclick="openWithdrawalManager('${user.id}', '${user.full_name}', ${user.balance})">
+                <button class="btn-action btn-delete" title="Manage Withdrawals" onclick="openWithdrawalManager('${user.id}', '${user.full_name}', ${balance})">
                     <i class="fas fa-minus-circle"></i>
                 </button>
             </td>
@@ -233,16 +239,33 @@ async function openWithdrawalManager(userId, userName, currentBalance) {
     document.getElementById('withdrawalUserName').textContent = userName;
     document.getElementById('withdrawalUserAmount').textContent = `Current Balance: ₦${currentBalance.toLocaleString()}`;
     
-    // Render calendar for visual reference (re-using deposit render logic but viewing withdrawals)
-    renderWithdrawalCalendar(currentYear, userId);
-    
-    // Populate year
+    // Clear previous input
+    document.getElementById('withdrawalAmountInput').value = '';
+
+    // Populate SESSION Selector
     const yearSelect = document.getElementById('withdrawalYearSelect');
     yearSelect.innerHTML = '';
-    const opt = document.createElement('option');
-    opt.value = currentYear;
-    opt.textContent = currentYear;
-    yearSelect.appendChild(opt);
+    
+    // CONFIGURATION: 2025 is Session 1
+    const baseYear = 2025; 
+    
+    // Generate 10 Sessions (Session 1 to Session 10)
+    for(let i = 0; i < 10; i++) {
+        const loopYear = baseYear + i;
+        const opt = document.createElement('option');
+        opt.value = loopYear; // Value sent to DB is still the real year (e.g. 2025)
+        opt.textContent = `Session ${i + 1}`; // Display is "Session 1", "Session 2"
+        
+        // Auto-select the current year
+        if(loopYear === currentYear) opt.selected = true;
+        yearSelect.appendChild(opt);
+    }
+
+    // Render history for the selected session
+    renderWithdrawalCalendar(currentYear, userId);
+    
+    // Update when session changes
+    yearSelect.onchange = (e) => renderWithdrawalCalendar(parseInt(e.target.value), userId);
 
     openModal('withdrawalModal');
 }
@@ -292,138 +315,156 @@ async function renderWithdrawalCalendar(year, userId) {
 }
 
 async function saveWithdrawalChanges() {
-    // For withdrawals, we'll create a single new transaction based on input
-    // Note: You might want to add an input field for "Amount to Withdraw" in the HTML modal
-    // For this example, I will prompt the user since the HTML modal in previous code was complex
+    // Get Amount from the NEW Input Field
+    const amountInput = document.getElementById('withdrawalAmountInput');
+    const amountVal = amountInput.value.trim();
     
-    const amountStr = prompt("Enter amount to withdraw (₦):");
-    if(!amountStr) return;
+    if(!amountVal || amountVal <= 0) {
+        alert("Please enter a valid amount to withdraw.");
+        return;
+    }
     
-    const amount = parseFloat(amountStr);
-    const reason = document.getElementById('withdrawalReason').value || "Withdrawal";
+    const amount = parseFloat(amountVal);
     
-    if(isNaN(amount) || amount <= 0) {
-        alert("Invalid amount");
+    // Check Balance
+    const { data: user } = await sb.from('profiles').select('balance').eq('id', selectedUserId).single();
+    const currentBal = Number(user.balance) || 0;
+    
+    if(currentBal < amount) {
+        alert(`Insufficient funds! User only has ₦${currentBal.toLocaleString()}`);
         return;
     }
 
     const btn = document.getElementById('confirmWithdrawalModal');
     btn.textContent = 'Processing...';
 
-    // 1. Check Balance
-    const { data: user } = await sb.from('profiles').select('balance').eq('id', selectedUserId).single();
-    
-    if(user.balance < amount) {
-        alert("Insufficient funds!");
-        btn.textContent = 'Confirm Withdrawals';
-        return;
-    }
-
-    // 2. Insert Transaction
+    // Insert Transaction (Date is today)
     const today = new Date().toISOString().split('T')[0];
-    
-    const { error: txError } = await sb.from('transactions').insert([{
+    const { error } = await sb.from('transactions').insert([{
         user_id: selectedUserId,
         type: 'withdrawal',
         amount: amount,
         transaction_date: today,
-        description: reason
+        description: 'Manual Withdrawal' 
     }]);
 
-    if(txError) {
-        alert("Error recording transaction");
-        btn.textContent = 'Confirm Withdrawals';
+    if (error) {
+        alert("Error: " + error.message);
+        btn.textContent = 'Confirm Withdrawal';
         return;
     }
 
-    // 3. Update Balance
-    const newBalance = user.balance - amount;
-    await sb.from('profiles').update({ balance: newBalance }).eq('id', selectedUserId);
+    // Update Balance
+    await sb.from('profiles').update({ balance: currentBal - amount }).eq('id', selectedUserId);
 
     alert("Withdrawal successful!");
     closeModal('withdrawalModal');
-    btn.textContent = 'Confirm Withdrawals';
-    document.getElementById('withdrawalReason').value = '';
+    btn.textContent = 'Confirm Withdrawal';
+    
+    // Refresh Data
     loadAdminDashboard();
 }
 
 // --- DEPOSIT LOGIC (Existing + Refined) ---
 async function openDepositManager(userId, userName, dailyAmount) {
     selectedUserId = userId;
-    document.getElementById('depositUserName').textContent = userName;
-    document.getElementById('depositUserAmount').textContent = `Daily Amount: ₦${dailyAmount}`;
     
+    document.getElementById('depositUserName').textContent = userName;
+    document.getElementById('depositUserAmount').textContent = `Daily Amount: ₦${dailyAmount.toLocaleString()}`;
+    
+    // Populate Year Select (Acts as "Start Year")
     const yearSelect = document.getElementById('depositYearSelect');
     yearSelect.innerHTML = '';
+    // Show range of years
     for(let i = 2024; i <= 2030; i++) {
         const opt = document.createElement('option');
         opt.value = i;
-        opt.textContent = i;
+        opt.textContent = `Cycle Start: ${i}`; // Changed label
         if(i === currentYear) opt.selected = true;
         yearSelect.appendChild(opt);
     }
 
     renderDepositCalendar(currentYear, userId);
     openModal('depositModal');
+    
     yearSelect.onchange = (e) => renderDepositCalendar(parseInt(e.target.value), userId);
 }
 
-async function renderDepositCalendar(year, userId) {
+async function renderDepositCalendar(startYear, userId) {
     const container = document.getElementById('depositMonthsContainer');
-    container.innerHTML = 'Loading...';
+    container.innerHTML = '<p style="text-align:center; padding:20px;">Loading 24-month cycle...</p>';
 
-    const start = `${year}-01-01`;
-    const end = `${year}-12-31`;
+    // Calculate Date Range (Covering a wide range to ensure we catch all saved dates)
+    const startDate = `${startYear}-01-01`;
+    const endDate = `${startYear + 2}-02-01`; // Extra buffer
     
     const { data: transactions } = await sb
         .from('transactions')
         .select('*')
         .eq('user_id', userId)
         .eq('type', 'deposit')
-        .gte('transaction_date', start)
-        .lte('transaction_date', end);
+        .gte('transaction_date', startDate)
+        .lte('transaction_date', endDate);
 
     const depositedDates = new Set(transactions.map(t => t.transaction_date));
 
     container.innerHTML = '';
-    let yearlyTotal = 0;
+    let cycleTotal = 0;
     
-    for (let month = 0; month < 12; month++) {
-        const monthDate = new Date(year, month, 1);
-        const monthName = monthDate.toLocaleString('default', { month: 'long' });
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
+    // Generate exactly 24 "Months"
+    for (let m = 0; m < 24; m++) {
+        // Calculate the "Real" year/month for this slot
+        const currentLoopYear = startYear + Math.floor(m / 12); 
+        const currentLoopMonth = m % 12; // 0=Jan, 1=Feb...
+
         const monthSection = document.createElement('div');
         monthSection.className = 'month-section';
         
         let daysHTML = '';
         let monthCount = 0;
 
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        // FORCE GENERATE 1-31 DAYS
+        for (let day = 1; day <= 31; day++) {
+            // 1. Create a "Safe" Date Object
+            // If we ask for Feb 30, JS automatically rolls it to Mar 2. We use this feature.
+            const dateObj = new Date(currentLoopYear, currentLoopMonth, day);
+            
+            // Format to YYYY-MM-DD string for Database
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${d}`;
+            
+            // Check if this date is already saved in DB
             const isDeposited = depositedDates.has(dateStr);
             if(isDeposited) monthCount++;
 
             daysHTML += `
                 <div class="checkbox-day ${isDeposited ? 'deposited' : ''}">
                     <label>${day}</label>
-                    <input type="checkbox" class="deposit-checkbox" data-date="${dateStr}" ${isDeposited ? 'checked' : ''}>
+                    <input type="checkbox" 
+                           class="deposit-checkbox" 
+                           data-date="${dateStr}" 
+                           ${isDeposited ? 'checked' : ''}>
                 </div>
             `;
         }
         
-        yearlyTotal += (monthCount * getDailyAmount()); 
+        cycleTotal += (monthCount * getDailyAmount()); 
 
         monthSection.innerHTML = `
             <div class="month-header">
-                <h4>${monthName}</h4>
-                <div class="month-summary"><span>${monthCount}/${daysInMonth} Days</span></div>
+                <h4>Month ${m + 1}</h4>
+                <div class="month-summary"><span>${monthCount} Checked</span></div>
             </div>
-            <div class="checkbox-grid">${daysHTML}</div>
+            <div class="checkbox-grid">
+                ${daysHTML}
+            </div>
         `;
         container.appendChild(monthSection);
     }
-    document.getElementById('depositYearlyTotal').textContent = `₦${(yearlyTotal).toLocaleString()}`;
+    
+    document.getElementById('depositYearlyTotal').textContent = `₦${cycleTotal.toLocaleString()}`;
 }
 
 function getDailyAmount() {
@@ -438,63 +479,102 @@ async function saveDepositChanges() {
     
     btn.textContent = 'Saving...';
     
-    const year = document.getElementById('depositYearSelect').value;
+    // Define the full range we are looking at
+    const startYear = parseInt(document.getElementById('depositYearSelect').value);
+    const startDate = `${startYear}-01-01`;
+    const endDate = `${startYear + 2}-02-01`; // Buffer to catch roll-over dates
+
+    // 1. Fetch Existing (to avoid duplicates)
     const { data: existingTx } = await sb
         .from('transactions')
         .select('transaction_date, id')
         .eq('user_id', selectedUserId)
         .eq('type', 'deposit')
-        .gte('transaction_date', `${year}-01-01`)
-        .lte('transaction_date', `${year}-12-31`);
+        .gte('transaction_date', startDate)
+        .lte('transaction_date', endDate);
 
     const existingMap = new Map(existingTx.map(t => [t.transaction_date, t.id]));
     const toInsert = [];
     const toDeleteIds = [];
+    const processedDates = new Set(); // Prevent duplicates in the same batch save
 
+    // 2. Process Checkboxes
     checkboxes.forEach(box => {
         const date = box.dataset.date;
+        
+        // Skip if we already processed this date in this loop 
+        // (This happens because Feb 30 rolls to Mar 2, and Mar 2 exists too)
+        if (processedDates.has(date)) return;
+        
         const isChecked = box.checked;
         const hasRecord = existingMap.has(date);
 
         if (isChecked && !hasRecord) {
-            toInsert.push({ user_id: selectedUserId, type: 'deposit', amount: amount, transaction_date: date, description: 'Daily Contribution' });
+            toInsert.push({ 
+                user_id: selectedUserId, 
+                type: 'deposit', 
+                amount: amount, 
+                transaction_date: date, 
+                description: 'Daily Contribution' 
+            });
+            processedDates.add(date);
         } else if (!isChecked && hasRecord) {
             toDeleteIds.push(existingMap.get(date));
+            processedDates.add(date);
         }
     });
 
+    // 3. Database Operations
     if (toDeleteIds.length > 0) await sb.from('transactions').delete().in('id', toDeleteIds);
     if (toInsert.length > 0) await sb.from('transactions').insert(toInsert);
 
+    // 4. Update Balance
     const balanceChange = (toInsert.length * amount) - (toDeleteIds.length * amount);
     const { data: user } = await sb.from('profiles').select('balance').eq('id', selectedUserId).single();
-    await sb.from('profiles').update({ balance: (user.balance || 0) + balanceChange }).eq('id', selectedUserId);
+    await sb.from('profiles').update({ balance: (Number(user.balance) || 0) + balanceChange }).eq('id', selectedUserId);
 
     btn.textContent = 'Confirm Deposits';
     closeModal('depositModal');
-    alert('Deposits updated!');
+    alert('Deposits updated successfully!');
     loadAdminDashboard();
 }
 
 async function handleRegisterUser(e) {
     e.preventDefault();
+    
+    // Get the Manual Member ID
+    const memberId = document.getElementById('newMemberId').value.trim();
+    const username = document.getElementById('newUsername').value.trim().toLowerCase();
+    const pin = document.getElementById('newPin').value.trim();
+    const phone = document.getElementById('newPhone').value.trim();
+    const amount = document.getElementById('dailyProposedAmount').value;
+
+    if (pin.length < 4 || isNaN(pin)) {
+        alert("Please enter a valid 4-digit PIN.");
+        return;
+    }
+
     const newUser = {
-        full_name: document.getElementById('newFullName').value,
-        username: document.getElementById('newUsername').value,
-        email: document.getElementById('newEmail').value,
-        phone: document.getElementById('newPhone').value,
-        password: document.getElementById('newPassword').value,
-        daily_amount: document.getElementById('dailyProposedAmount').value,
-        role: document.getElementById('userRole').value,
+        member_id: memberId, // Save the manual ID here
+        username: username,
+        password: pin,
+        phone: phone,
+        daily_amount: amount,
+        full_name: username, 
+        email: "",
+        role: 'user',
         balance: 0
     };
+
     const { error } = await sb.from('profiles').insert([newUser]);
-    if (error) { alert('Error: ' + error.message); } 
-    else { 
-        alert('User registered!'); 
-        closeModal('userModal'); 
-        document.getElementById('addUserForm').reset(); 
-        fetchUsers(); 
+
+    if (error) {
+        alert('Error: ' + error.message);
+    } else {
+        alert(`User registered! ID: ${memberId}`);
+        closeModal('userModal');
+        document.getElementById('addUserForm').reset();
+        fetchUsers();
     }
 }
 
@@ -518,4 +598,72 @@ function filterUsers(query) {
         user.username.toLowerCase().includes(lowerQuery)
     );
     renderUserTable(filtered);
+}
+
+// ==========================================
+// 9. USER DASHBOARD LOGIC (Safe Version)
+// ==========================================
+async function loadUserDashboard() {
+    try {
+        // 1. Show User Page
+        userPage.style.display = 'block';
+
+        // 2. Safe Data Extraction
+        const fullName = currentUser.full_name || 'Member';
+        const balance = Number(currentUser.balance) || 0;
+        const daily = Number(currentUser.daily_amount) || 0;
+        const memberId = currentUser.member_id || '---';
+
+        // 3. Update Sidebar & Header Info
+        document.getElementById('currentUserName').textContent = fullName;
+        document.getElementById('displayUserName').textContent = fullName;
+        
+        // Update Member ID in Sidebar (Find the element with class .user-id)
+        const idElement = document.querySelector('.user-id');
+        if(idElement) idElement.textContent = `Member ID: ${memberId}`;
+
+        // 4. Update Balance Cards
+        document.getElementById('currentBalance').textContent = `₦${balance.toLocaleString()}`;
+        document.getElementById('dailyTargetAmount').textContent = `₦${daily.toLocaleString()}`;
+
+        // 5. Fetch & Display Transactions
+        const { data: transactions } = await sb
+            .from('transactions')
+            .select('*')
+            .eq('user_id', currentUser.id)
+            .order('transaction_date', { ascending: false })
+            .limit(30);
+
+        const tbody = document.getElementById('transactionTableBody');
+        tbody.innerHTML = '';
+        let totalDeposits = 0;
+
+        if (transactions && transactions.length > 0) {
+            transactions.forEach(tx => {
+                if(tx.type === 'deposit') totalDeposits += Number(tx.amount);
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${tx.transaction_date}</td>
+                    <td>#${tx.id.slice(0, 8)}</td>
+                    <td>${tx.description || tx.type}</td>
+                    <td>₦${Number(tx.amount).toLocaleString()}</td>
+                    <td><span class="${tx.type === 'deposit' ? 'type-deposit' : 'type-withdrawal'}">${tx.type}</span></td>
+                    <td>-</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No recent transactions.</td></tr>';
+        }
+
+        // 6. Update Summary Stats
+        document.getElementById('totalDeposits30Days').textContent = `₦${totalDeposits.toLocaleString()}`;
+
+    } catch (err) {
+        console.error("Dashboard Error:", err);
+        alert("Error loading dashboard data. Please verify your internet connection.");
+        // Ensure page is visible even if data fails
+        userPage.style.display = 'block';
+    }
 }

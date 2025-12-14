@@ -221,64 +221,49 @@
         </div>
 
         <div class="modal-overlay" id="userModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-user-plus"></i> Register New User</h3>
-                    <button class="modal-close" id="closeModal">&times;</button>
-                </div>
-                <form id="addUserForm">
-                    <div class="modal-body">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="newFullName"><i class="fas fa-user"></i> Full Name *</label>
-                                <input type="text" id="newFullName" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="newUsername"><i class="fas fa-at"></i> Username *</label>
-                                <input type="text" id="newUsername" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="newEmail"><i class="fas fa-envelope"></i> Email Address</label>
-                                <input type="email" id="newEmail">
-                            </div>
-                            <div class="form-group">
-                                <label for="newPhone"><i class="fas fa-phone"></i> Phone Number *</label>
-                                <input type="tel" id="newPhone" required>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="newPassword"><i class="fas fa-lock"></i> Initial Password *</label>
-                                <input type="password" id="newPassword" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="dailyProposedAmount"><i class="fas fa-money-bill-wave"></i> Daily Proposed Amount (₦) *</label>
-                                <input type="number" id="dailyProposedAmount" min="200" required value="1000">
-                                <small>Minimum: ₦200</small>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="userRole"><i class="fas fa-user-tag"></i> User Role</label>
-                                <select id="userRole">
-                                    <option value="user">Regular User</option>
-                                    <option value="agent">Collection Agent</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn-cancel" id="cancelModal">Cancel</button>
-                        <button type="submit" class="btn-save">Register User</button>
-                    </div>
-                </form>
-            </div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-plus"></i> Register New User</h3>
+            <button class="modal-close" id="closeModal">&times;</button>
         </div>
+        <form id="addUserForm">
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newMemberId"><i class="fas fa-id-card"></i> Member ID *</label>
+                        <input type="text" id="newMemberId" placeholder="e.g. 101 or A-05" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newUsername"><i class="fas fa-user"></i> Username *</label>
+                        <input type="text" id="newUsername" placeholder="e.g. john" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPin"><i class="fas fa-key"></i> 4-Digit PIN *</label>
+                        <input type="password" id="newPin" maxlength="4" pattern="\d{4}" placeholder="****" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newPhone"><i class="fas fa-phone"></i> Phone Number *</label>
+                        <input type="tel" id="newPhone" placeholder="080..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dailyProposedAmount"><i class="fas fa-money-bill-wave"></i> Daily Contribution (₦) *</label>
+                        <input type="number" id="dailyProposedAmount" min="200" required value="1000">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="cancelModal">Cancel</button>
+                <button type="submit" class="btn-save">Register User</button>
+            </div>
+        </form>
+    </div>
+</div>
 
         <div class="modal-overlay calendar-modal" id="depositModal">
             <div class="modal-content">
@@ -328,61 +313,55 @@
             </div>
         </div>
 
-        <div class="modal-overlay calendar-modal" id="withdrawalModal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3><i class="fas fa-hand-holding-usd"></i> Manage Withdrawals</h3>
-                    <button class="modal-close" id="closeWithdrawalModal">&times;</button>
+<div class="modal-overlay calendar-modal" id="withdrawalModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-hand-holding-usd"></i> Manage Withdrawals</h3>
+            <button class="modal-close" id="closeWithdrawalModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="user-info-header">
+                <div>
+                    <h4 id="withdrawalUserName">Loading user...</h4>
+                    <p class="proposed-amount-display" id="withdrawalUserAmount">Daily Amount: ₦0</p>
                 </div>
-                <div class="modal-body">
-                    <div class="user-info-header">
-                        <div>
-                            <h4 id="withdrawalUserName">Loading user...</h4>
-                            <p class="proposed-amount-display" id="withdrawalUserAmount">Daily Amount: ₦0</p>
-                        </div>
-                        <div class="year-selector">
-                            <label for="withdrawalYearSelect"><i class="fas fa-calendar"></i> Year:</label>
-                            <select id="withdrawalYearSelect"></select>
-                        </div>
-                    </div>
-
-                    <div class="calendar-controls">
-                        <button class="btn-action btn-edit" id="saveWithdrawalsBtn">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
-                        <div class="legend">
-                            <span class="legend-item deposited">
-                                <i class="fas fa-square"></i> Deposited
-                            </span>
-                            <span class="legend-item withdrawn">
-                                <i class="fas fa-square"></i> Withdrawn
-                            </span>
-                            <span class="legend-item not-withdrawn">
-                                <i class="fas fa-square"></i> Not Withdrawn
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="months-container" id="withdrawalMonthsContainer"></div>
-
-                    <div class="form-group">
-                        <label for="withdrawalReason"><i class="fas fa-comment"></i> Reason for Withdrawal (Optional)</label>
-                        <textarea id="withdrawalReason" class="withdrawal-reason" placeholder="Enter reason for withdrawal..."></textarea>
-                    </div>
+                <div class="year-selector">
+                    <label for="withdrawalYearSelect"><i class="fas fa-layer-group"></i> Session:</label>
+                    <select id="withdrawalYearSelect"></select>
                 </div>
-                <div class="modal-footer">
-                    <div class="modal-footer-content">
-                        <div class="totals">
-                            <strong>Yearly Withdrawn:</strong> <span id="withdrawalYearlyTotal">₦0</span>
-                        </div>
-                        <div class="modal-buttons">
-                            <button type="button" class="btn-cancel" id="cancelWithdrawalModal">Cancel</button>
-                            <button type="button" class="btn-save" id="confirmWithdrawalModal">Confirm Withdrawals</button>
-                        </div>
-                    </div>
+            </div>
+
+            <div class="calendar-controls">
+                <button class="btn-action btn-edit" id="saveWithdrawalsBtn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+                <div class="legend">
+                    <span class="legend-item withdrawn">
+                        <i class="fas fa-square"></i> Withdrawals
+                    </span>
+                </div>
+            </div>
+
+            <div class="months-container" id="withdrawalMonthsContainer"></div>
+
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="withdrawalAmountInput"><i class="fas fa-coins"></i> Amount to Withdraw (₦)</label>
+                <input type="number" id="withdrawalAmountInput" class="withdrawal-reason" placeholder="Enter amount (e.g. 5000)">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="modal-footer-content">
+                <div class="totals">
+                    <strong>Total Withdrawn (Session):</strong> <span id="withdrawalYearlyTotal">₦0</span>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" id="cancelWithdrawalModal">Cancel</button>
+                    <button type="button" class="btn-save" id="confirmWithdrawalModal">Confirm Withdrawal</button>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
         <footer class="main-footer">
             <p>&copy; 2025 Happy Family Commission Agency Limited.<br>
