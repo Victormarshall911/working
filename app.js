@@ -616,6 +616,9 @@ function filterUsers(query) {
 // ==========================================
 // 9. USER DASHBOARD LOGIC (Safe Version)
 // ==========================================
+// ==========================================
+// 9. USER DASHBOARD LOGIC (Safe Version)
+// ==========================================
 async function loadUserDashboard() {
     try {
         // 1. Show User Page
@@ -648,12 +651,9 @@ async function loadUserDashboard() {
 
         const tbody = document.getElementById('transactionTableBody');
         tbody.innerHTML = '';
-        let totalDeposits = 0;
 
         if (transactions && transactions.length > 0) {
             transactions.forEach(tx => {
-                if(tx.type === 'deposit') totalDeposits += Number(tx.amount);
-                
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>#${tx.id.slice(0, 8)}</td>
@@ -664,12 +664,10 @@ async function loadUserDashboard() {
                 tbody.appendChild(tr);
             });
         } else {
-            // Updated colspan to 4 since we removed columns
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No recent transactions.</td></tr>';
         }
 
-        // 6. Update Summary Stats
-        document.getElementById('totalDeposits30Days').textContent = `₦${totalDeposits.toLocaleString()}`;
+        // Summary stats update removed
 
     } catch (err) {
         console.error("Dashboard Error:", err);
