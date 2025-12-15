@@ -401,9 +401,9 @@ async function renderDepositCalendar(startYear, userId) {
     const container = document.getElementById('depositMonthsContainer');
     container.innerHTML = '<p style="text-align:center; padding:20px;">Loading 24-month cycle...</p>';
 
-    // Calculate Date Range (Covering a wide range to ensure we catch all saved dates)
+    // Calculate Date Range 
     const startDate = `${startYear}-01-01`;
-    const endDate = `${startYear + 2}-02-01`; // Extra buffer
+    const endDate = `${startYear + 2}-02-01`; 
     
     const { data: transactions } = await sb
         .from('transactions')
@@ -420,9 +420,8 @@ async function renderDepositCalendar(startYear, userId) {
     
     // Generate exactly 24 "Months"
     for (let m = 0; m < 24; m++) {
-        // Calculate the "Real" year/month for this slot
         const currentLoopYear = startYear + Math.floor(m / 12); 
-        const currentLoopMonth = m % 12; // 0=Jan, 1=Feb...
+        const currentLoopMonth = m % 12; 
 
         const monthSection = document.createElement('div');
         monthSection.className = 'month-section';
@@ -432,17 +431,12 @@ async function renderDepositCalendar(startYear, userId) {
 
         // FORCE GENERATE 1-31 DAYS
         for (let day = 1; day <= 31; day++) {
-            // 1. Create a "Safe" Date Object
-            // If we ask for Feb 30, JS automatically rolls it to Mar 2. We use this feature.
             const dateObj = new Date(currentLoopYear, currentLoopMonth, day);
-            
-            // Format to YYYY-MM-DD string for Database
             const year = dateObj.getFullYear();
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
             const d = String(dateObj.getDate()).padStart(2, '0');
             const dateStr = `${year}-${month}-${d}`;
             
-            // Check if this date is already saved in DB
             const isDeposited = depositedDates.has(dateStr);
             if(isDeposited) monthCount++;
 
@@ -459,12 +453,23 @@ async function renderDepositCalendar(startYear, userId) {
         
         cycleTotal += (monthCount * getDailyAmount()); 
 
+        // Create a unique ID for this specific month's grid
+        const gridId = `month-grid-${m}`;
+
         monthSection.innerHTML = `
             <div class="month-header">
-                <h4>Month ${m + 1}</h4>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" 
+                           title="Select All 31 Days"
+                           style="width: 18px; height: 18px; cursor: pointer;"
+                           onchange="toggleMonth(this, '${gridId}')">
+                    
+                    <h4>Month ${m + 1}</h4>
+                </div>
                 <div class="month-summary"><span>${monthCount} Checked</span></div>
             </div>
-            <div class="checkbox-grid">
+            
+            <div class="checkbox-grid" id="${gridId}">
                 ${daysHTML}
             </div>
         `;
@@ -675,3 +680,12 @@ async function loadUserDashboard() {
         userPage.style.display = 'block';
     }
 }
+
+// --- NEW HELPER: Select All Logic ---
+window.toggleMonth = function(masterCheckbox, gridId) {
+    const grid = document.getElementById(gridId);
+    const checkboxes = grid.querySelectorAll('.deposit-checkbox');
+    checkboxes.forEach(box => {
+        box.checked = masterCheckbox.checked;
+    });
+};
