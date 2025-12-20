@@ -113,74 +113,43 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function setupEventListeners() {
-  // Auth
+  // ... (keep existing Auth listeners) ...
   document.getElementById("loginForm").addEventListener("submit", handleLogin);
   document.getElementById("logoutBtn").addEventListener("click", handleLogout);
-  document
-    .getElementById("userLogoutBtn")
-    .addEventListener("click", handleLogout);
+  document.getElementById("userLogoutBtn").addEventListener("click", handleLogout);
 
-  // Admin - User Registration
-  document
-    .getElementById("addUserBtn")
-    .addEventListener("click", () => openModal("userModal"));
-  document
-    .getElementById("closeModal")
-    .addEventListener("click", () => closeModal("userModal"));
-  document
-    .getElementById("cancelModal")
-    .addEventListener("click", () => closeModal("userModal"));
-  document
-    .getElementById("addUserForm")
-    .addEventListener("submit", handleRegisterUser);
+  // ... (keep existing Add User listeners) ...
+  document.getElementById("addUserBtn").addEventListener("click", () => openModal("userModal"));
+  document.getElementById("closeModal").addEventListener("click", () => closeModal("userModal"));
+  document.getElementById("cancelModal").addEventListener("click", () => closeModal("userModal"));
+  document.getElementById("addUserForm").addEventListener("submit", handleRegisterUser);
 
-  // Admin - Deposits
-  document
-    .getElementById("closeDepositModal")
-    .addEventListener("click", () => closeModal("depositModal"));
-  document
-    .getElementById("cancelDepositModal")
-    .addEventListener("click", () => closeModal("depositModal"));
-  document
-    .getElementById("confirmDepositModal")
-    .addEventListener("click", saveDepositChanges);
+  // --- NEW: EDIT USER LISTENERS ---
+  document.getElementById("closeEditModal").addEventListener("click", () => closeModal("editUserModal"));
+  document.getElementById("cancelEditModal").addEventListener("click", () => closeModal("editUserModal"));
+  document.getElementById("editUserForm").addEventListener("submit", saveUserEdits);
+  // --------------------------------
 
-  // Admin - Withdrawals
-  document
-    .getElementById("closeWithdrawalModal")
-    .addEventListener("click", () => closeModal("withdrawalModal"));
-  document
-    .getElementById("cancelWithdrawalModal")
-    .addEventListener("click", () => closeModal("withdrawalModal"));
-  document
-    .getElementById("confirmWithdrawalModal")
-    .addEventListener("click", saveWithdrawalChanges);
+  // ... (keep existing Deposit/Withdrawal listeners) ...
+  document.getElementById("closeDepositModal").addEventListener("click", () => closeModal("depositModal"));
+  document.getElementById("cancelDepositModal").addEventListener("click", () => closeModal("depositModal"));
+  document.getElementById("confirmDepositModal").addEventListener("click", saveDepositChanges);
 
-  // Admin - Global Buttons
-  document
-    .getElementById("globalDepositBtn")
-    .addEventListener("click", focusOnTable);
-  document
-    .getElementById("globalWithdrawalBtn")
-    .addEventListener("click", focusOnTable);
+  document.getElementById("closeWithdrawalModal").addEventListener("click", () => closeModal("withdrawalModal"));
+  document.getElementById("cancelWithdrawalModal").addEventListener("click", () => closeModal("withdrawalModal"));
+  document.getElementById("confirmWithdrawalModal").addEventListener("click", saveWithdrawalChanges);
 
-  // Admin - Quick Actions
+  // ... (keep existing Global/Quick Actions) ...
+  document.getElementById("globalDepositBtn").addEventListener("click", focusOnTable);
+  document.getElementById("globalWithdrawalBtn").addEventListener("click", focusOnTable);
   document.getElementById("exportBtn").addEventListener("click", exportToCSV);
   document.getElementById("printBtn").addEventListener("click", printReport);
-  document
-    .getElementById("notifyBtn")
-    .addEventListener("click", () => alert("Notification system coming soon!"));
+  document.getElementById("notifyBtn").addEventListener("click", () => alert("Notification system coming soon!"));
 
-  // Admin - Search & Pagination
-  document
-    .getElementById("userSearch")
-    .addEventListener("input", (e) => filterUsers(e.target.value));
-  document
-    .getElementById("prevPageBtn")
-    .addEventListener("click", () => changePage(-1));
-  document
-    .getElementById("nextPageBtn")
-    .addEventListener("click", () => changePage(1));
+  // ... (keep existing Search) ...
+  document.getElementById("userSearch").addEventListener("input", (e) => filterUsers(e.target.value));
+  document.getElementById("prevPageBtn").addEventListener("click", () => changePage(-1));
+  document.getElementById("nextPageBtn").addEventListener("click", () => changePage(1));
 }
 
 // ============================================
@@ -281,7 +250,10 @@ function renderUserTable(usersToRender = null) {
   paginatedItems.forEach((user) => {
     const daily = Number(user.daily_amount) || 0;
     const balance = Number(user.balance) || 0;
-    console.log("balance", balance);
+
+    // We escape single quotes in strings to prevent JS errors in the onclick
+    const safeId = user.id;
+    const safeName = (user.full_name || "").replace(/'/g, "\\'");
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -294,15 +266,19 @@ function renderUserTable(usersToRender = null) {
       <td>-</td>
       <td><span class="status-active"><i class="fas fa-circle"></i> Active</span></td>
       <td>
-        <button class="btn-action btn-edit" title="Manage Deposits" onclick="openDepositManager('${
-          user.id
-        }', '${user.full_name}', ${daily})">
+        <button class="btn-action btn-edit" title="Manage Deposits" onclick="openDepositManager('${safeId}', '${safeName}', ${daily})">
           <i class="fas fa-plus-circle"></i>
         </button>
-        <button class="btn-action btn-delete" title="Manage Withdrawals" onclick="openWithdrawalManager('${
-          user.id
-        }', '${user.full_name}', ${balance})">
+        <button class="btn-action btn-delete" title="Manage Withdrawals" onclick="openWithdrawalManager('${safeId}', '${safeName}', ${balance})">
           <i class="fas fa-minus-circle"></i>
+        </button>
+        
+        <button class="btn-action" style="background:#f59e0b; color:white;" title="Edit User" onclick="openEditUserModal('${safeId}')">
+          <i class="fas fa-pen"></i>
+        </button>
+
+        <button class="btn-action" style="background:#dc2626; color:white;" title="Delete User" onclick="deleteUser('${safeId}', '${safeName}')">
+          <i class="fas fa-trash"></i>
         </button>
       </td>
     `;
@@ -687,6 +663,88 @@ async function loadUserDashboard() {
   }
 }
 
+function openEditUserModal(userId) {
+  // Find the user in our local list
+  const user = allUsers.find(u => u.id === userId);
+  if (!user) return;
+
+  // Populate fields
+  document.getElementById("editUserId").value = user.id;
+  document.getElementById("editMemberId").value = user.member_id || "";
+  document.getElementById("editUsername").value = user.username || "";
+  document.getElementById("editPin").value = user.password || ""; // Showing PIN
+  document.getElementById("editPhone").value = user.phone || "";
+  document.getElementById("editDailyAmount").value = user.daily_amount || 0;
+  document.getElementById("editEmail").value = user.email || "";
+
+  openModal("editUserModal");
+}
+
+async function saveUserEdits(e) {
+  e.preventDefault();
+  
+  const userId = document.getElementById("editUserId").value;
+  const btn = document.querySelector("#editUserForm .btn-save");
+  
+  // Get values
+  const updates = {
+    member_id: document.getElementById("editMemberId").value.trim(),
+    password: document.getElementById("editPin").value.trim(),
+    phone: document.getElementById("editPhone").value.trim(),
+    daily_amount: document.getElementById("editDailyAmount").value,
+    email: document.getElementById("editEmail").value.trim(),
+    // We usually update full_name if it changes, here assuming username logic stays
+  };
+
+  btn.textContent = "Saving...";
+
+  const { error } = await sb
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId);
+
+  btn.textContent = "Save Changes";
+
+  if (error) {
+    showToast("Update Failed", error.message, "error");
+  } else {
+    showToast("Success", "User details updated successfully.", "success");
+    closeModal("editUserModal");
+    fetchUsers(); // Refresh table
+  }
+}
+
+async function deleteUser(userId, userName) {
+  // Confirmation Alert
+  const confirmed = confirm(`Are you sure you want to PERMANENTLY DELETE ${userName}?\n\nThis will remove their account and ALL transaction history.\nThis action cannot be undone.`);
+  
+  if (!confirmed) return;
+
+  // 1. Delete Transactions first (Foreign Key Constraint)
+  const { error: txError } = await sb
+    .from('transactions')
+    .delete()
+    .eq('user_id', userId);
+
+  if (txError) {
+    showToast("Error", "Could not delete transaction history: " + txError.message, "error");
+    return;
+  }
+
+  // 2. Delete Profile
+  const { error: userError } = await sb
+    .from('profiles')
+    .delete()
+    .eq('id', userId);
+
+  if (userError) {
+    showToast("Error", "Could not delete user profile: " + userError.message, "error");
+  } else {
+    showToast("Deleted", `${userName} has been deleted.`, "success");
+    fetchUsers(); // Refresh table
+  }
+}
+
 // --- UTILITIES ---
 function openModal(modalId) {
   document.getElementById(modalId).style.display = "flex";
@@ -708,13 +766,15 @@ function updateDateDisplay() {
 }
 
 function filterUsers(query) {
-  const lowerQuery = query.toLowerCase();
-  const filtered = allUsers.filter(
-    (user) =>
-      user.full_name.toLowerCase().includes(lowerQuery) ||
-      user.username.toLowerCase().includes(lowerQuery)
-  );
-  renderUserTable(filtered);
+    const lowerQuery = query.trim().toLowerCase();
+    
+    const filtered = allUsers.filter(user => 
+        (user.full_name || '').toLowerCase().includes(lowerQuery) || 
+        (user.username || '').toLowerCase().includes(lowerQuery) ||
+        (user.member_id || '').toLowerCase().includes(lowerQuery) // <-- Now searches ID too
+    );
+    
+    renderUserTable(filtered);
 }
 
 function formatDate(date) {
@@ -973,3 +1033,11 @@ function handleRegisterUser(e) {
       }
     });
 }
+// Make functions globally accessible
+window.openDepositManager = openDepositManager;
+window.openWithdrawalManager = openWithdrawalManager;
+window.toggleMonth = toggleMonth;
+window.togglePasswordVisibility = togglePasswordVisibility;
+// Add these lines:
+window.openEditUserModal = openEditUserModal;
+window.deleteUser = deleteUser;

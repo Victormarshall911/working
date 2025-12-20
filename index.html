@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Happy Family Commission Agency</title>
     <link rel="stylesheet" href="HappyFamilyCommission.css" />
+
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -15,6 +16,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   </head>
 
@@ -222,6 +224,57 @@
                 />
               </div>
             </div>
+
+            <div class="modal-overlay" id="editUserModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-edit"></i> Edit User Details</h3>
+            <button class="modal-close" id="closeEditModal">&times;</button>
+        </div>
+        <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editMemberId"><i class="fas fa-id-card"></i> Member ID</label>
+                        <input type="text" id="editMemberId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUsername"><i class="fas fa-user"></i> Username</label>
+                        <input type="text" id="editUsername" readonly style="background-color: #eee; cursor: not-allowed;">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editPin"><i class="fas fa-key"></i> PIN</label>
+                        <input type="text" id="editPin" maxlength="4" pattern="\d{4}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone"><i class="fas fa-phone"></i> Phone Number</label>
+                        <input type="tel" id="editPhone">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editDailyAmount"><i class="fas fa-money-bill-wave"></i> Daily Amount (₦)</label>
+                        <input type="number" id="editDailyAmount" min="200" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail"><i class="fas fa-envelope"></i> Email (Optional)</label>
+                        <input type="email" id="editEmail">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="cancelEditModal">Cancel</button>
+                <button type="submit" class="btn-save">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
 
             <div class="table-responsive">
               <table class="user-table">
@@ -756,3 +809,4 @@
     <script src="app.js"></script>
   </body>
 </html>
+
