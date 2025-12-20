@@ -1,573 +1,758 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Happy Family Commission Agency</title>
-    <link rel="stylesheet" href="HappyFamilyCommission.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="HappyFamilyCommission.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-</head>
+  </head>
 
-<body>
+  <body>
+    <!-- Toast Container for Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
     <div id="loginPage">
-        <div class="container login-container">
-            <header class="company-header">
-                <div class="company-logo">
-                    <i class="fas fa-hands-helping"></i>
-                    <h1>Happy Family Commission Agency Limited</h1>
-                </div>
-                <p class="company-tagline">Building Wealth, One Day at a Time</p>
-            </header>
+      <div class="container login-container">
+        <header class="company-header">
+          <div class="company-logo">
+            <i class="fas fa-hands-helping"></i>
+            <h1>Happy Family Commission Agency Limited</h1>
+          </div>
+          <p class="company-tagline">Building Wealth, One Day at a Time</p>
+        </header>
 
-            <div class="main-content">
-                <div class="company-info">
-                    <h2><i class="fas fa-bullseye"></i> Our Mission</h2>
-                    <p>Provide a simple, convenient, and rewarding way for individuals to save and invest regularly.</p>
+        <div class="main-content">
+          <div class="company-info">
+            <h2><i class="fas fa-bullseye"></i> Our Mission</h2>
+            <p>
+              Provide a simple, convenient, and rewarding way for individuals to
+              save and invest regularly.
+            </p>
 
-                    <h2><i class="fas fa-cogs"></i> How It Works</h2>
-                    <ol>
-                        <li>Register as a member</li>
-                        <li>Choose your daily contribution amount</li>
-                        <li>Make daily contributions at our branches</li>
-                        <li>Watch your savings grow</li>
-                    </ol>
+            <h2><i class="fas fa-cogs"></i> How It Works</h2>
+            <ol>
+              <li>Register as a member</li>
+              <li>Choose your daily contribution amount</li>
+              <li>Make daily contributions at our branches</li>
+              <li>Watch your savings grow</li>
+            </ol>
 
-                    <h2><i class="fas fa-map-marker-alt"></i> Our Location</h2>
-                    <p><i class="fas fa-store"></i> Tools and Motor Spare parts, Effurun, Warri, Delta State</p>
+            <h2><i class="fas fa-map-marker-alt"></i> Our Location</h2>
+            <p>
+              <i class="fas fa-store"></i> Tools and Motor Spare parts, Effurun,
+              Warri, Delta State
+            </p>
 
-                    <h2><i class="fas fa-phone"></i> Contact Us</h2>
-                    <div class="contact-details">
-                        <p><i class="fas fa-phone-square"></i> 08037969203</p>
-                        <p><i class="fas fa-phone-square"></i> 08108062640</p>
-                        <p><i class="fas fa-envelope"></i> info@happyfamilyagency.com</p>
-                    </div>
-                </div>
-
-                <div class="login-form-container">
-                    <div class="login-card">
-                        <h2><i class="fas fa-sign-in-alt"></i> Member Login</h2>
-                        <p class="login-subtitle">Access your contribution dashboard</p>
-
-                        <form id="loginForm">
-                            <div class="form-group">
-                                <label for="username"><i class="fas fa-user"></i> Username / Email</label>
-                                <input type="text" id="username" placeholder="Enter your username or email" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="password"><i class="fas fa-lock"></i> Password</label>
-                                <input type="password" id="password" placeholder="Enter your password" required>
-                            </div>
-
-                            <div class="form-options">
-                                <label class="checkbox-container">
-                                    <input type="checkbox" id="rememberMe">
-                                    <span class="checkmark"></span>
-                                    Remember me
-                                </label>
-                                <a href="#" class="forgot-password">Forgot Password?</a>
-                            </div>
-
-                            <button type="submit" class="btn-login">
-                                <i class="fas fa-sign-in-alt"></i> Login
-                            </button>
-
-                            
-                        </form>
-
-                        <div class="login-footer">
-                            <p>New to Happy Family? <a href="#" id="registerLink">Contact admin for registration</a></p>
-                            <p class="security-note"><i class="fas fa-shield-alt"></i> Secure login system</p>
-                        </div>
-                    </div>
-                </div>
+            <h2><i class="fas fa-phone"></i> Contact Us</h2>
+            <div class="contact-details">
+              <p><i class="fas fa-phone-square"></i> 08037969203</p>
+              <p><i class="fas fa-phone-square"></i> 08108062640</p>
+              <p><i class="fas fa-envelope"></i> info@happyfamilyagency.com</p>
             </div>
+          </div>
 
-            <footer class="main-footer">
-                <p>&copy; 2025 Happy Family Commission Agency Limited.<br> All rights reserved.</p>
-                <p>Daily Contribution System v1.0</p>
-                <p>Copyright MalcNelxus Technologies Limited</p>
-            </footer>
+          <div class="login-form-container">
+            <div class="login-card">
+              <h2><i class="fas fa-sign-in-alt"></i> Member Login</h2>
+              <p class="login-subtitle">Access your contribution dashboard</p>
+
+              <form id="loginForm">
+                <div class="form-group">
+                  <label for="username"
+                    ><i class="fas fa-user"></i> Username / Email</label
+                  >
+                  <input
+                    type="text"
+                    id="username"
+                    placeholder="Enter your username or email"
+                    required
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="password"
+                    ><i class="fas fa-lock"></i> Password</label
+                  >
+                  <div class="password-wrapper">
+                    <input
+                      type="password"
+                      id="password"
+                      placeholder="Enter your password"
+                      required
+                    />
+
+                    <span
+                      class="toggle-password"
+                      onclick="togglePasswordVisibility()"
+                    >
+                      <i class="fas fa-eye-slash" id="eyeIcon"></i>
+                    </span>
+                  </div>
+                </div>
+
+                <div class="form-options">
+                  <label class="checkbox-container">
+                    <input type="checkbox" id="rememberMe" />
+                    <span class="checkmark"></span>
+                    Remember me
+                  </label>
+                  <a href="#" class="forgot-password">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn-login">
+                  <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+              </form>
+
+              <div class="login-footer">
+                <p>
+                  New to Happy Family?
+                  <a href="#" id="registerLink"
+                    >Contact admin for registration</a
+                  >
+                </p>
+                <p class="security-note">
+                  <i class="fas fa-shield-alt"></i> Secure login system
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <footer class="main-footer">
+          <p>
+            &copy; 2025 Happy Family Commission Agency Limited.<br />
+            All rights reserved.
+          </p>
+          <p>Daily Contribution System v1.0</p>
+          <p>Copyright MalcNelxus Technologies Limited</p>
+        </footer>
+      </div>
     </div>
 
-    <div id="adminPage" style="display: none;">
-        <nav class="top-nav">
-            <div class="nav-brand">
-                <i class="fas fa-hands-helping"></i>
-                <h2>Happy Family Agency - Admin Panel</h2>
-            </div>
-            <div class="nav-user">
-                <span class="user-welcome"><i class="fas fa-user-shield"></i> Admin User</span>
-                <button class="btn-logout" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
-                </button>
-            </div>
-        </nav>
-
-        <div class="container dashboard-container">
-            <aside class="sidebar">
-                <div class="sidebar-header">
-                    <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
-                </div>
-                <ul class="sidebar-menu">
-                    <li class="active"><a href="#"><i class="fas fa-users"></i> User Management</a></li>
-                    <li><a href="#"><i class="fas fa-chart-line"></i> Reports</a></li>
-                    <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
-                    <li><a href="#"><i class="fas fa-question-circle"></i> Help</a></li>
-                </ul>
-
-                <div class="sidebar-stats">
-                    <h4><i class="fas fa-chart-pie"></i> Quick Stats</h4>
-                    <div class="stat-item">
-                        <span>Total Users</span>
-                        <strong id="totalUsers">0</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>Total Balance</span>
-                        <strong id="totalBalance">₦0</strong>
-                    </div>
-                    <div class="stat-item">
-                        <span>Today's Deposits</span>
-                        <strong id="todayDeposits">--</strong>
-                    </div>
-                </div>
-            </aside>
-
-            <main class="main-dashboard">
-                <div class="dashboard-header">
-                    <h1><i class="fas fa-users-cog"></i> User Management</h1>
-                    <div class="dashboard-actions">
-                        <button class="btn-add-user" id="addUserBtn">
-                            <i class="fas fa-user-plus"></i> Register New User
-                        </button>
-                        <button class="btn-add-user" id="globalDepositBtn">
-                            <i class="fas fa-money-bill-wave"></i> Manage Deposits
-                        </button>
-                        <button class="btn-add-user" id="globalWithdrawalBtn">
-                            <i class="fas fa-hand-holding-usd"></i> Manage Withdrawals
-                        </button>
-                    </div>
-                </div>
-
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-list"></i> Registered Users</h3>
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="userSearch" placeholder="Search users...">
-                        </div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="user-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Full Name</th>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Daily Amount</th>
-                                    <th>Balance</th>
-                                    <th>Last Deposit</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="userTableBody"></tbody>
-                        </table>
-                    </div>
-
-                    <div class="table-footer">
-                        <div class="pagination">
-                            <button class="btn-pagination" id="prevPageBtn" disabled><i class="fas fa-chevron-left"></i> Prev</button>
-                            <span class="page-info" id="pageIndicator">Page 1 of 1</span>
-                            <button class="btn-pagination" id="nextPageBtn">Next <i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <div class="table-summary">
-                            </div>
-                    </div>
-                </div>
-
-                <div class="quick-actions">
-                    <div class="action-card" id="exportBtn">
-                        <i class="fas fa-file-export"></i>
-                        <h4>Export Data</h4>
-                        <p>Export user data to Excel</p>
-                    </div>
-                    <div class="action-card" id="printBtn">
-                        <i class="fas fa-print"></i>
-                        <h4>Print Reports</h4>
-                        <p>Generate printable reports</p>
-                    </div>
-                    <div class="action-card" id="notifyBtn">
-                        <i class="fas fa-bell"></i>
-                        <h4>Notifications</h4>
-                        <p>Send alerts to users</p>
-                    </div>
-                    <div class="action-card" id="depositOverviewBtn">
-                        <i class="fas fa-calendar-check"></i>
-                        <h4>Deposit Overview</h4>
-                        <p>View all user deposit status</p>
-                    </div>
-                </div>
-            </main>
+    <div id="adminPage" style="display: none">
+      <nav class="top-nav">
+        <div class="nav-brand">
+          <i class="fas fa-hands-helping"></i>
+          <h2>Happy Family Agency - Admin Panel</h2>
         </div>
+        <div class="nav-user">
+          <span class="user-welcome"
+            ><i class="fas fa-user-shield"></i> Admin User</span
+          >
+          <button class="btn-logout" id="logoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </nav>
 
-        <div class="modal-overlay" id="userModal">
-    <div class="modal-content">
-        <div class="modal-header">
+      <div class="container dashboard-container">
+        <aside class="sidebar">
+          <div class="sidebar-header">
+            <h3><i class="fas fa-tachometer-alt"></i> Dashboard Menu</h3>
+          </div>
+          <ul class="sidebar-menu">
+            <li class="active">
+              <a href="#"><i class="fas fa-users"></i> User Management</a>
+            </li>
+            <li>
+              <a href="#"><i class="fas fa-chart-line"></i> Reports</a>
+            </li>
+            <li>
+              <a href="#"><i class="fas fa-cog"></i> Settings</a>
+            </li>
+            <li>
+              <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+            </li>
+          </ul>
+
+          <div class="sidebar-stats">
+            <h4><i class="fas fa-chart-pie"></i> Quick Stats</h4>
+            <div class="stat-item">
+              <span>Total Users</span>
+              <strong id="totalUsers">0</strong>
+            </div>
+            <div class="stat-item">
+              <span>Total Balance</span>
+              <strong id="totalBalance">₦0</strong>
+            </div>
+            <div class="stat-item">
+              <span>Today's Deposits</span>
+              <strong id="todayDeposits">--</strong>
+            </div>
+          </div>
+        </aside>
+
+        <main class="main-dashboard">
+          <div class="dashboard-header">
+            <h1><i class="fas fa-users-cog"></i> User Management</h1>
+            <div class="dashboard-actions">
+              <button class="btn-add-user" id="addUserBtn">
+                <i class="fas fa-user-plus"></i> Register New User
+              </button>
+              <button class="btn-add-user" id="globalDepositBtn">
+                <i class="fas fa-money-bill-wave"></i> Manage Deposits
+              </button>
+              <button class="btn-add-user" id="globalWithdrawalBtn">
+                <i class="fas fa-hand-holding-usd"></i> Manage Withdrawals
+              </button>
+            </div>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h3><i class="fas fa-list"></i> Registered Users</h3>
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input
+                  type="text"
+                  id="userSearch"
+                  placeholder="Search users..."
+                />
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="user-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Full Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Daily Amount</th>
+                    <th>Balance</th>
+                    <th>Last Deposit</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody"></tbody>
+              </table>
+            </div>
+
+            <div class="table-footer">
+              <div class="pagination">
+                <button class="btn-pagination" id="prevPageBtn" disabled>
+                  <i class="fas fa-chevron-left"></i> Prev
+                </button>
+                <span class="page-info" id="pageIndicator">Page 1 of 1</span>
+                <button class="btn-pagination" id="nextPageBtn">
+                  Next <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+              <div class="table-summary"></div>
+            </div>
+          </div>
+
+          <div class="quick-actions">
+            <div class="action-card" id="exportBtn">
+              <i class="fas fa-file-export"></i>
+              <h4>Export Data</h4>
+              <p>Export user data to Excel</p>
+            </div>
+            <div class="action-card" id="printBtn">
+              <i class="fas fa-print"></i>
+              <h4>Print Reports</h4>
+              <p>Generate printable reports</p>
+            </div>
+            <div class="action-card" id="notifyBtn">
+              <i class="fas fa-bell"></i>
+              <h4>Notifications</h4>
+              <p>Send alerts to users</p>
+            </div>
+            <div class="action-card" id="depositOverviewBtn">
+              <i class="fas fa-calendar-check"></i>
+              <h4>Deposit Overview</h4>
+              <p>View all user deposit status</p>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <div class="modal-overlay" id="userModal">
+        <div class="modal-content">
+          <div class="modal-header">
             <h3><i class="fas fa-user-plus"></i> Register New User</h3>
             <button class="modal-close" id="closeModal">&times;</button>
-        </div>
-        <form id="addUserForm">
+          </div>
+          <form id="addUserForm">
             <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="newMemberId"><i class="fas fa-id-card"></i> Member ID *</label>
-                        <input type="text" id="newMemberId" placeholder="e.g. 001 or 101" required>
-                    </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="newMemberId"
+                    ><i class="fas fa-id-card"></i> Member ID *</label
+                  >
+                  <input
+                    type="text"
+                    id="newMemberId"
+                    placeholder="e.g. 001 or 101"
+                    required
+                  />
                 </div>
+              </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="newUsername"><i class="fas fa-user"></i> Username *</label>
-                        <input type="text" id="newUsername" placeholder="e.g. john" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="newPin"><i class="fas fa-key"></i> 4-Digit PIN *</label>
-                        <input type="password" id="newPin" maxlength="4" pattern="\d{4}" placeholder="****" required>
-                    </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="newUsername"
+                    ><i class="fas fa-user"></i> Username *</label
+                  >
+                  <input
+                    type="text"
+                    id="newUsername"
+                    placeholder="e.g. john"
+                    required
+                  />
                 </div>
+                <div class="form-group">
+                  <label for="newPin"
+                    ><i class="fas fa-key"></i> 4-Digit PIN *</label
+                  >
+                  <input
+                    type="password"
+                    id="newPin"
+                    maxlength="4"
+                    pattern="\d{4}"
+                    placeholder="****"
+                    required
+                  />
+                </div>
+              </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="newPhone"><i class="fas fa-phone"></i> Phone Number</label>
-                        <input type="tel" id="newPhone" placeholder="080...">
-                    </div>
-                    <div class="form-group">
-                        <label for="dailyProposedAmount"><i class="fas fa-money-bill-wave"></i> Daily Contribution (₦) *</label>
-                        <input type="number" id="dailyProposedAmount" min="200" required value="1000">
-                    </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="newPhone"
+                    ><i class="fas fa-phone"></i> Phone Number</label
+                  >
+                  <input type="tel" id="newPhone" placeholder="080..." />
                 </div>
+                <div class="form-group">
+                  <label for="dailyProposedAmount"
+                    ><i class="fas fa-money-bill-wave"></i> Daily Contribution
+                    (₦) *</label
+                  >
+                  <input
+                    type="number"
+                    id="dailyProposedAmount"
+                    min="200"
+                    required
+                    value="1000"
+                  />
+                </div>
+              </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-cancel" id="cancelModal">Cancel</button>
-                <button type="submit" class="btn-save">Register User</button>
+              <button type="button" class="btn-cancel" id="cancelModal">
+                Cancel
+              </button>
+              <button type="submit" class="btn-save">Register User</button>
             </div>
-        </form>
-    </div>
-</div>
+          </form>
+        </div>
+      </div>
 
-        <div class="modal-overlay calendar-modal" id="depositModal">
-    <div class="modal-content">
-        <div class="modal-header">
+      <div class="modal-overlay calendar-modal" id="depositModal">
+        <div class="modal-content">
+          <div class="modal-header">
             <h3><i class="fas fa-money-bill-wave"></i> Manage Deposits</h3>
             <button class="modal-close" id="closeDepositModal">&times;</button>
-        </div>
-        <div class="modal-body">
+          </div>
+          <div class="modal-body">
             <div class="user-info-header">
-                <div>
-                    <h4 id="depositUserName">Loading user...</h4>
-                    <p class="proposed-amount-display" id="depositUserAmount">Daily Amount: ₦0</p>
-                </div>
-                <div class="year-selector">
-                    <label for="depositYearSelect"><i class="fas fa-layer-group"></i> Session:</label>
-                    <select id="depositYearSelect"></select>
-                </div>
+              <div>
+                <h4 id="depositUserName">Loading user...</h4>
+                <p class="proposed-amount-display" id="depositUserAmount">
+                  Daily Amount: ₦0
+                </p>
+              </div>
+              <div class="year-selector">
+                <label for="depositYearSelect"
+                  ><i class="fas fa-layer-group"></i> Session:</label
+                >
+                <select id="depositYearSelect"></select>
+              </div>
             </div>
 
             <div class="calendar-controls">
-                <button class="btn-action btn-edit" id="saveDepositsBtn">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
-                <div class="legend">
-                    <span class="legend-item deposited">
-                        <i class="fas fa-square"></i> Deposited
-                    </span>
-                    <span class="legend-item not-deposited">
-                        <i class="fas fa-square"></i> Not Deposited
-                    </span>
-                </div>
+              <button class="btn-action btn-edit" id="saveDepositsBtn">
+                <i class="fas fa-save"></i> Save Changes
+              </button>
+              <div class="legend">
+                <span class="legend-item deposited">
+                  <i class="fas fa-square"></i> Deposited
+                </span>
+                <span class="legend-item not-deposited">
+                  <i class="fas fa-square"></i> Not Deposited
+                </span>
+              </div>
             </div>
 
             <div class="months-container" id="depositMonthsContainer"></div>
-        </div>
-        <div class="modal-footer">
+          </div>
+          <div class="modal-footer">
             <div class="modal-footer-content">
-                <div class="totals">
-                    <strong>Yearly Total:</strong> <span id="depositYearlyTotal">₦0</span>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn-cancel" id="cancelDepositModal">Cancel</button>
-                    <button type="button" class="btn-save" id="confirmDepositModal">Confirm Deposits</button>
-                </div>
+              <div class="totals">
+                <strong>Yearly Total:</strong>
+                <span id="depositYearlyTotal">₦0</span>
+              </div>
+              <div class="modal-buttons">
+                <button
+                  type="button"
+                  class="btn-cancel"
+                  id="cancelDepositModal"
+                >
+                  Cancel
+                </button>
+                <button type="button" class="btn-save" id="confirmDepositModal">
+                  Confirm Deposits
+                </button>
+              </div>
             </div>
+          </div>
         </div>
-    </div>
-</div>
+      </div>
 
-<div class="modal-overlay calendar-modal" id="withdrawalModal">
-    <div class="modal-content">
-        <div class="modal-header">
+      <div class="modal-overlay calendar-modal" id="withdrawalModal">
+        <div class="modal-content">
+          <div class="modal-header">
             <h3><i class="fas fa-hand-holding-usd"></i> Manage Withdrawals</h3>
-            <button class="modal-close" id="closeWithdrawalModal">&times;</button>
-        </div>
-        <div class="modal-body">
+            <button class="modal-close" id="closeWithdrawalModal">
+              &times;
+            </button>
+          </div>
+          <div class="modal-body">
             <div class="user-info-header">
-                <div>
-                    <h4 id="withdrawalUserName">Loading user...</h4>
-                    <p class="proposed-amount-display" id="withdrawalUserAmount">Daily Amount: ₦0</p>
-                </div>
-                <div class="year-selector">
-                    <label for="withdrawalYearSelect"><i class="fas fa-layer-group"></i> Session:</label>
-                    <select id="withdrawalYearSelect"></select>
-                </div>
+              <div>
+                <h4 id="withdrawalUserName">Loading user...</h4>
+                <p class="proposed-amount-display" id="withdrawalUserAmount">
+                  Daily Amount: ₦0
+                </p>
+              </div>
+              <div class="year-selector">
+                <label for="withdrawalYearSelect"
+                  ><i class="fas fa-layer-group"></i> Session:</label
+                >
+                <select id="withdrawalYearSelect"></select>
+              </div>
             </div>
 
             <div class="calendar-controls">
-                <button class="btn-action btn-edit" id="saveWithdrawalsBtn">
-                    <i class="fas fa-save"></i> Save Changes
-                </button>
-                <div class="legend">
-                    <span class="legend-item withdrawn">
-                        <i class="fas fa-square"></i> Withdrawals
-                    </span>
-                </div>
+              <button class="btn-action btn-edit" id="saveWithdrawalsBtn">
+                <i class="fas fa-save"></i> Save Changes
+              </button>
+              <div class="legend">
+                <span class="legend-item withdrawn">
+                  <i class="fas fa-square"></i> Withdrawals
+                </span>
+              </div>
             </div>
 
             <div class="months-container" id="withdrawalMonthsContainer"></div>
 
-            <div class="form-group" style="margin-top: 20px;">
-                <label for="withdrawalAmountInput"><i class="fas fa-coins"></i> Amount to Withdraw (₦)</label>
-                <input type="number" id="withdrawalAmountInput" class="withdrawal-reason" placeholder="Enter amount (e.g. 5000)">
+            <div class="form-group" style="margin-top: 20px">
+              <label for="withdrawalAmountInput"
+                ><i class="fas fa-coins"></i> Amount to Withdraw (₦)</label
+              >
+              <input
+                type="number"
+                id="withdrawalAmountInput"
+                class="withdrawal-reason"
+                placeholder="Enter amount (e.g. 5000)"
+              />
             </div>
-        </div>
-        <div class="modal-footer">
+          </div>
+          <div class="modal-footer">
             <div class="modal-footer-content">
-                <div class="totals">
-                    <strong>Total Withdrawn (Session):</strong> <span id="withdrawalYearlyTotal">₦0</span>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn-cancel" id="cancelWithdrawalModal">Cancel</button>
-                    <button type="button" class="btn-save" id="confirmWithdrawalModal">Confirm Withdrawal</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-        <footer class="main-footer">
-            <p>&copy; 2025 Happy Family Commission Agency Limited.<br>
-                <p>Copyright MalcNelxus Technologies Limited</p><br> All rights reserved.</p>
-            <p>Admin Dashboard v1.0 | Deposit Tracking System v2.0</p>
-        </footer>
-    </div>
-
-    <div id="userPage" style="display: none;">
-        <nav class="top-nav">
-            <div class="nav-brand">
-                <i class="fas fa-hands-helping"></i>
-                <h2>Happy Family Commission Agency</h2>
-            </div>
-            <div class="nav-user">
-                <span class="user-welcome"><i class="fas fa-user"></i> Welcome, <span id="currentUserName">John Doe</span></span>
-                <button class="btn-logout" id="userLogoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+              <div class="totals">
+                <strong>Total Withdrawn (Session):</strong>
+                <span id="withdrawalYearlyTotal">₦0</span>
+              </div>
+              <div class="modal-buttons">
+                <button
+                  type="button"
+                  class="btn-cancel"
+                  id="cancelWithdrawalModal"
+                >
+                  Cancel
                 </button>
+                <button
+                  type="button"
+                  class="btn-save"
+                  id="confirmWithdrawalModal"
+                >
+                  Confirm Withdrawal
+                </button>
+              </div>
             </div>
-        </nav>
-
-        <div class="container user-container">
-            <aside class="user-sidebar">
-                <div class="user-profile">
-                    <div class="profile-avatar">
-                        <i class="fas fa-user-circle"></i>
-                    </div>
-                    <h3 id="displayUserName">John Doe</h3>
-                    <p class="user-id">Member ID: HFCA-0012</p>
-                    <div class="profile-status">
-                        <span class="status-active"><i class="fas fa-circle"></i> Active Member</span>
-                    </div>
-                </div>
-
-                <ul class="user-menu">
-                    <li class="active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="#"><i class="fas fa-history"></i> Contribution History</a></li>
-                    <li><a href="#"><i class="fas fa-chart-line"></i> Progress</a></li>
-                    <li><a href="#"><i class="fas fa-user-edit"></i> Profile</a></li>
-                    <li><a href="#"><i class="fas fa-question-circle"></i> Help Center</a></li>
-                </ul>
-
-                <div class="sidebar-info">
-                    <h4><i class="fas fa-info-circle"></i> Quick Info</h4>
-                    <p>Daily contributions should be made before 6 PM at any branch.</p>
-                    <p>Contact admin for any account issues.</p>
-                </div>
-            </aside>
-
-            <main class="user-main">
-                <div class="welcome-banner">
-                    <div class="welcome-text">
-                        <h1><i class="fas fa-hand-holding-heart"></i> Your Contribution Dashboard</h1>
-                        <p>Track your daily savings and financial progress</p>
-                    </div>
-                    <div class="current-date">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span id="todayDate">Loading...</span>
-                    </div>
-                </div>
-
-                <div class="balance-cards">
-                    <div class="balance-card primary">
-                        <div class="card-icon">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Current Balance</h3>
-                            <p class="balance-amount" id="currentBalance">₦ 0</p>
-                            <p class="balance-info">Available for withdrawal</p>
-                        </div>
-                    </div>
-
-                    <div class="balance-card secondary">
-                        <div class="card-icon">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Daily Target</h3>
-                            <p class="balance-amount" id="dailyTargetAmount">₦ 0</p>
-                            <p class="balance-info">Per day contribution</p>
-                        </div>
-                    </div>
-
-                    <div class="balance-card accent">
-                        <div class="card-icon">
-                            <i class="fas fa-fire"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Current Streak</h3>
-                            <p class="balance-amount">0 Days</p>
-                            <p class="balance-info">Consistent contributions</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dashboard-card">
-    <div class="card-header">
-        <h3><i class="fas fa-exchange-alt"></i> Recent Transactions</h3>
+          </div>
         </div>
+      </div>
 
-    <div class="table-responsive">
-        <table class="transaction-table">
-            <thead>
-                <tr>
+      <!-- Admin Footer -->
+      <footer class="main-footer">
+        <p>
+          &copy; 2025 Happy Family Commission Agency Limited. All rights
+          reserved.
+        </p>
+        <p>Copyright MalcNelxus Technologies Limited</p>
+        <p>Admin Dashboard v1.0 | Deposit Tracking System v2.0</p>
+      </footer>
+    </div>
+
+    <div id="userPage" style="display: none">
+      <nav class="top-nav">
+        <div class="nav-brand">
+          <i class="fas fa-hands-helping"></i>
+          <h2>Happy Family Commission Agency</h2>
+        </div>
+        <div class="nav-user">
+          <span class="user-welcome"
+            ><i class="fas fa-user"></i> Welcome,
+            <span id="currentUserName">John Doe</span></span
+          >
+          <button class="btn-logout" id="userLogoutBtn">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </nav>
+
+      <div class="container user-container">
+        <aside class="user-sidebar">
+          <div class="user-profile">
+            <div class="profile-avatar">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <h3 id="displayUserName">John Doe</h3>
+            <p class="user-id">Member ID: HFCA-0012</p>
+            <div class="profile-status">
+              <span class="status-active"
+                ><i class="fas fa-circle"></i> Active Member</span
+              >
+            </div>
+          </div>
+
+          <ul class="user-menu">
+            <li class="active">
+              <a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            </li>
+            <li>
+              <a href="#"
+                ><i class="fas fa-history"></i> Contribution History</a
+              >
+            </li>
+            <li>
+              <a href="#"><i class="fas fa-chart-line"></i> Progress</a>
+            </li>
+            <li>
+              <a href="#"><i class="fas fa-user-edit"></i> Profile</a>
+            </li>
+            <li>
+              <a href="#"><i class="fas fa-question-circle"></i> Help Center</a>
+            </li>
+          </ul>
+
+          <div class="sidebar-info">
+            <h4><i class="fas fa-info-circle"></i> Quick Info</h4>
+            <p>Daily contributions should be made before 6 PM at any branch.</p>
+            <p>Contact admin for any account issues.</p>
+          </div>
+        </aside>
+
+        <main class="user-main">
+          <div class="welcome-banner">
+            <div class="welcome-text">
+              <h1>
+                <i class="fas fa-hand-holding-heart"></i> Your Contribution
+                Dashboard
+              </h1>
+              <p>Track your daily savings and financial progress</p>
+            </div>
+            <div class="current-date">
+              <i class="fas fa-calendar-alt"></i>
+              <span id="todayDate">Loading...</span>
+            </div>
+          </div>
+
+          <div class="balance-cards">
+            <div class="balance-card primary">
+              <div class="card-icon">
+                <i class="fas fa-wallet"></i>
+              </div>
+              <div class="card-content">
+                <h3>Current Balance</h3>
+                <p class="balance-amount" id="currentBalance">₦ 0</p>
+                <p class="balance-info">Available for withdrawal</p>
+              </div>
+            </div>
+
+            <div class="balance-card secondary">
+              <div class="card-icon">
+                <i class="fas fa-calendar-check"></i>
+              </div>
+              <div class="card-content">
+                <h3>Daily Target</h3>
+                <p class="balance-amount" id="dailyTargetAmount">₦ 0</p>
+                <p class="balance-info">Per day contribution</p>
+              </div>
+            </div>
+
+            <div class="balance-card accent">
+              <div class="card-icon">
+                <i class="fas fa-fire"></i>
+              </div>
+              <div class="card-content">
+                <h3>Current Streak</h3>
+                <p class="balance-amount">0 Days</p>
+                <p class="balance-info">Consistent contributions</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="card-header">
+              <h3><i class="fas fa-exchange-alt"></i> Recent Transactions</h3>
+            </div>
+
+            <div class="table-responsive">
+              <table class="transaction-table">
+                <thead>
+                  <tr>
                     <th>Transaction ID</th>
                     <th>Description</th>
                     <th>Amount</th>
                     <th>Type</th>
-                </tr>
-            </thead>
-            <tbody id="transactionTableBody"></tbody>
-        </table>
-    </div>
-
-    <div class="table-footer">
-        <div class="pagination">
-            <button class="btn-pagination" disabled><i class="fas fa-chevron-left"></i> Previous</button>
-            <span class="page-info">Page 1 of 1</span>
-            <button class="btn-pagination">Next <i class="fas fa-chevron-right"></i></button>
-        </div>
-        </div>
-</div>                <div class="summary-cards">
-                    <div class="summary-card">
-                        <h4><i class="fas fa-chart-bar"></i> This Month</h4>
-                        <div class="summary-content">
-                            <div class="summary-item">
-                                <span>Contributions Made</span>
-                                <strong id="contributionsThisMonth">--/30 days</strong>
-                            </div>
-                            <div class="summary-item">
-                                <span>Total Deposited</span>
-                                <strong id="totalThisMonth">₦ 0</strong>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 0%" id="monthProgress"></div>
-                            </div>
-                            <p class="progress-text" id="monthProgressText">0% monthly target achieved</p>
-                        </div>
-                    </div>
-
-                    <div class="summary-card">
-                        <h4><i class="fas fa-trophy"></i> Achievement</h4>
-                        <div class="summary-content">
-                            <div class="achievement">
-                                <i class="fas fa-medal"></i>
-                                <div>
-                                    <strong>Gold Saver</strong>
-                                    <p>Consistent for 3 months</p>
-                                </div>
-                            </div>
-                            <div class="achievement">
-                                <i class="fas fa-star"></i>
-                                <div>
-                                    <strong>Early Bird</strong>
-                                    <p>On-time payments</p>
-                                </div>
-                            </div>
-                            <div class="next-milestone">
-                                <p><i class="fas fa-flag"></i> Next milestone: ₦50,000 balance</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="summary-card">
-                        <h4><i class="fas fa-calendar-day"></i> Today's Status</h4>
-                        <div class="summary-content">
-                            <div class="today-status">
-                                <i class="fas fa-check-circle status-done"></i>
-                                <div>
-                                    <strong>Contribution Made</strong>
-                                    <p id="todayContributionInfo">Today, 10:30 AM at Main Branch</p>
-                                </div>
-                            </div>
-                            <div class="branch-info">
-                                <p><i class="fas fa-map-marker-alt"></i> <strong>Nearest Branch:</strong> Effurun Main</p>
-                                <p><i class="fas fa-clock"></i> <strong>Hours:</strong> 8AM - 6PM</p>
-                            </div>
-                            <button class="btn-receipt">
-                                <i class="fas fa-receipt"></i> View Today's Receipt
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-
-        <footer class="user-footer">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h4><i class="fas fa-phone"></i> Need Help?</h4>
-                    <p>08037969203</p>
-                    <p>08108062640</p>
-                </div>
-                <div class="footer-section">
-                    <h4><i class="fas fa-exclamation-circle"></i> Important Notice</h4>
-                    <p>Only admins can register new users. Contact branch for assistance.</p>
-                </div>
-                <div class="footer-section">
-                    <p>&copy; 2025 Happy Family Commission Agency</p>
-                    <p>Your financial growth partner</p>
-                    <p>Copyright MalcNelxus Technologies Limited</p>
-                </div>
+                  </tr>
+                </thead>
+                <tbody id="transactionTableBody"></tbody>
+              </table>
             </div>
-        </footer>
+
+            <div class="table-footer">
+              <div class="pagination">
+                <button class="btn-pagination" disabled>
+                  <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <span class="page-info">Page 1 of 1</span>
+                <button class="btn-pagination">
+                  Next <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="summary-cards">
+            <div class="summary-card">
+              <h4><i class="fas fa-chart-bar"></i> This Month</h4>
+              <div class="summary-content">
+                <div class="summary-item">
+                  <span>Contributions Made</span>
+                  <strong id="contributionsThisMonth">--/30 days</strong>
+                </div>
+                <div class="summary-item">
+                  <span>Total Deposited</span>
+                  <strong id="totalThisMonth">₦ 0</strong>
+                </div>
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    style="width: 0%"
+                    id="monthProgress"
+                  ></div>
+                </div>
+                <p class="progress-text" id="monthProgressText">
+                  0% monthly target achieved
+                </p>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <h4><i class="fas fa-trophy"></i> Achievement</h4>
+              <div class="summary-content">
+                <div class="achievement">
+                  <i class="fas fa-medal"></i>
+                  <div>
+                    <strong>Gold Saver</strong>
+                    <p>Consistent for 3 months</p>
+                  </div>
+                </div>
+                <div class="achievement">
+                  <i class="fas fa-star"></i>
+                  <div>
+                    <strong>Early Bird</strong>
+                    <p>On-time payments</p>
+                  </div>
+                </div>
+                <div class="next-milestone">
+                  <p>
+                    <i class="fas fa-flag"></i> Next milestone: ₦50,000 balance
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <h4><i class="fas fa-calendar-day"></i> Today's Status</h4>
+              <div class="summary-content">
+                <div class="today-status">
+                  <i class="fas fa-check-circle status-done"></i>
+                  <div>
+                    <strong>Contribution Made</strong>
+                    <p id="todayContributionInfo">
+                      Today, 10:30 AM at Main Branch
+                    </p>
+                  </div>
+                </div>
+                <div class="branch-info">
+                  <p>
+                    <i class="fas fa-map-marker-alt"></i>
+                    <strong>Nearest Branch:</strong> Effurun Main
+                  </p>
+                  <p>
+                    <i class="fas fa-clock"></i> <strong>Hours:</strong> 8AM -
+                    6PM
+                  </p>
+                </div>
+                <button class="btn-receipt">
+                  <i class="fas fa-receipt"></i> View Today's Receipt
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <footer class="user-footer">
+        <div class="footer-content">
+          <div class="footer-section">
+            <h4><i class="fas fa-phone"></i> Need Help?</h4>
+            <p>08037969203</p>
+            <p>08108062640</p>
+          </div>
+          <div class="footer-section">
+            <h4><i class="fas fa-exclamation-circle"></i> Important Notice</h4>
+            <p>
+              Only admins can register new users. Contact branch for assistance.
+            </p>
+          </div>
+          <div class="footer-section">
+            <p>&copy; 2025 Happy Family Commission Agency</p>
+            <p>Your financial growth partner</p>
+            <p>Copyright MalcNelxus Technologies Limited</p>
+          </div>
+        </div>
+      </footer>
     </div>
-    
+
     <script src="app.js"></script>
-
-</body>
-
+  </body>
 </html>
