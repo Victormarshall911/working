@@ -2,27 +2,16 @@
  * Happy Family Commission Agency - Main Application Script
  *
  * This script handles:
- * - User authentication (login/logout)
  * - Admin dashboard functionality (user management, deposits, withdrawals)
  * - User dashboard functionality
- * - Toast notifications
+ * - Modals and Event Listeners
  */
 
 // ============================================
-// SUPABASE CONFIGURATION
+// GLOBAL STATE (Extended from auth.js)
 // ============================================
 
-const SUPABASE_URL = "https://zxgqfimgldsxgjewmoyi.supabase.co";
-const SUPABASE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4Z3FmaW1nbGRzeGdqZXdtb3lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MDE3NzAsImV4cCI6MjA4MTA3Nzc3MH0.GBadxzt4jidJLrrG106YK5FBzrJiQTsuIAZvA_0PqkU";
-
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// ============================================
-// GLOBAL STATE
-// ============================================
-
-let currentUser = null;
+// 'currentUser' and 'sb' are provided by auth.js
 let selectedUserId = null;
 const currentYear = new Date().getFullYear();
 let allUsers = [];
@@ -38,72 +27,6 @@ const adminPage = document.getElementById("adminPage");
 const userPage = document.getElementById("userPage");
 
 // ============================================
-// TOAST NOTIFICATION SYSTEM
-// ============================================
-
-/**
- * Show a toast notification
- * @param {string} title - Toast title
- * @param {string} message - Toast message
- * @param {string} type - Toast type: 'success', 'error', 'warning', 'info'
- * @param {number} duration - Duration in milliseconds (default: 4000)
- */
-function showToast(title, message, type = "info", duration = 4000) {
-  const container = document.getElementById("toastContainer");
-  if (!container) return;
-
-  // Icon mapping for each toast type
-  const icons = {
-    success: "fa-check",
-    error: "fa-times",
-    warning: "fa-exclamation",
-    info: "fa-info",
-  };
-
-  // Create toast element
-  const toast = document.createElement("div");
-  toast.className = `toast toast-${type}`;
-  toast.innerHTML = `
-    <div class="toast-icon">
-      <i class="fas ${icons[type]}"></i>
-    </div>
-    <div class="toast-content">
-      <div class="toast-title">${title}</div>
-      <div class="toast-message">${message}</div>
-    </div>
-    <button class="toast-close" onclick="closeToast(this)">
-      <i class="fas fa-times"></i>
-    </button>
-  `;
-
-  container.appendChild(toast);
-
-  // Auto-remove toast after duration
-  setTimeout(() => {
-    if (toast.parentNode) {
-      toast.classList.add("toast-hiding");
-      setTimeout(() => toast.remove(), 300);
-    }
-  }, duration);
-}
-
-/**
- * Close a specific toast
- * @param {HTMLElement} button - The close button element
- */
-function closeToast(button) {
-  const toast = button.closest(".toast");
-  if (toast) {
-    toast.classList.add("toast-hiding");
-    setTimeout(() => toast.remove(), 300);
-  }
-}
-
-// Make toast functions globally accessible
-window.showToast = showToast;
-window.closeToast = closeToast;
-
-// ============================================
 // INITIALIZATION
 // ============================================
 
@@ -113,24 +36,23 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function setupEventListeners() {
-  // ... (keep existing Auth listeners) ...
+  // Auth listeners (functions defined in auth.js)
   document.getElementById("loginForm").addEventListener("submit", handleLogin);
   document.getElementById("logoutBtn").addEventListener("click", handleLogout);
   document.getElementById("userLogoutBtn").addEventListener("click", handleLogout);
 
-  // ... (keep existing Add User listeners) ...
+  // Add User listeners
   document.getElementById("addUserBtn").addEventListener("click", () => openModal("userModal"));
   document.getElementById("closeModal").addEventListener("click", () => closeModal("userModal"));
   document.getElementById("cancelModal").addEventListener("click", () => closeModal("userModal"));
   document.getElementById("addUserForm").addEventListener("submit", handleRegisterUser);
 
-  // --- NEW: EDIT USER LISTENERS ---
+  // Edit User listeners
   document.getElementById("closeEditModal").addEventListener("click", () => closeModal("editUserModal"));
   document.getElementById("cancelEditModal").addEventListener("click", () => closeModal("editUserModal"));
   document.getElementById("editUserForm").addEventListener("submit", saveUserEdits);
-  // --------------------------------
 
-  // ... (keep existing Deposit/Withdrawal listeners) ...
+  // Deposit/Withdrawal listeners
   document.getElementById("closeDepositModal").addEventListener("click", () => closeModal("depositModal"));
   document.getElementById("cancelDepositModal").addEventListener("click", () => closeModal("depositModal"));
   document.getElementById("confirmDepositModal").addEventListener("click", saveDepositChanges);
@@ -139,73 +61,23 @@ function setupEventListeners() {
   document.getElementById("cancelWithdrawalModal").addEventListener("click", () => closeModal("withdrawalModal"));
   document.getElementById("confirmWithdrawalModal").addEventListener("click", saveWithdrawalChanges);
 
-  // ... (keep existing Global/Quick Actions) ...
+  // Global/Quick Actions
   document.getElementById("globalDepositBtn").addEventListener("click", focusOnTable);
   document.getElementById("globalWithdrawalBtn").addEventListener("click", focusOnTable);
   document.getElementById("exportBtn").addEventListener("click", exportToCSV);
   document.getElementById("printBtn").addEventListener("click", printReport);
   document.getElementById("notifyBtn").addEventListener("click", () => alert("Notification system coming soon!"));
 
-  // ... (keep existing Search) ...
+  // Search and Pagination
   document.getElementById("userSearch").addEventListener("input", (e) => filterUsers(e.target.value));
   document.getElementById("prevPageBtn").addEventListener("click", () => changePage(-1));
   document.getElementById("nextPageBtn").addEventListener("click", () => changePage(1));
 }
 
 // ============================================
-// AUTHENTICATION
+// ADMIN DASHBOARD LOGIC
 // ============================================
 
-async function handleLogin(e) {
-  e.preventDefault();
-  const usernameInput = document.getElementById("username").value;
-  const passwordInput = document.getElementById("password").value;
-  const btn = document.querySelector(".btn-login");
-
-  btn.textContent = "Logging in...";
-
-  const { data, error } = await sb
-    .from("profiles")
-    .select("*")
-    .eq("username", usernameInput)
-    .eq("password", passwordInput)
-    .single();
-
-  btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
-
-  if (error || !data) {
-    showToast(
-      "Login Failed",
-      "Invalid username or password. Please try again.",
-      "error"
-    );
-    return;
-  }
-
-  currentUser = data;
-  loginPage.style.display = "none";
-
-  // Show welcome toast
-  const welcomeName = currentUser.full_name || currentUser.username || "User";
-  showToast("Welcome Back!", `Logged in as ${welcomeName}`, "success");
-
-  if (currentUser.role === "admin") {
-    loadAdminDashboard();
-  } else {
-    loadUserDashboard();
-  }
-}
-
-function handleLogout() {
-  showToast("Signed Out", "You have been logged out successfully.", "info");
-  currentUser = null;
-  loginPage.style.display = "block";
-  adminPage.style.display = "none";
-  userPage.style.display = "none";
-  document.getElementById("loginForm").reset();
-}
-
-// --- ADMIN DASHBOARD LOGIC ---
 async function loadAdminDashboard() {
   adminPage.style.display = "block";
   await fetchUsers();
@@ -693,7 +565,6 @@ async function saveUserEdits(e) {
     phone: document.getElementById("editPhone").value.trim(),
     daily_amount: document.getElementById("editDailyAmount").value,
     email: document.getElementById("editEmail").value.trim(),
-    // We usually update full_name if it changes, here assuming username logic stays
   };
 
   btn.textContent = "Saving...";
@@ -762,7 +633,7 @@ function updateDateDisplay() {
       year: "numeric",
       month: "long",
       day: "numeric",
-    });
+      });
 }
 
 function filterUsers(query) {
@@ -948,31 +819,6 @@ function toggleMonth(masterCheckbox, gridId) {
   }
 }
 
-// Toggles the visibility of the password input field
-function togglePasswordVisibility() {
-  const passwordInput = document.getElementById("password");
-  const toggleIcon = document.querySelector(".toggle-password i");
-
-  if (!passwordInput || !toggleIcon) return;
-
-  // Toggle input type
-  if (passwordInput.type === "password") {
-    passwordInput.type = "text";
-    toggleIcon.classList.remove("fa-eye-slash");
-    toggleIcon.classList.add("fa-eye");
-  } else {
-    passwordInput.type = "password";
-    toggleIcon.classList.remove("fa-eye");
-    toggleIcon.classList.add("fa-eye-slash");
-  }
-}
-
-// Make functions globally accessible
-window.openDepositManager = openDepositManager;
-window.openWithdrawalManager = openWithdrawalManager;
-window.toggleMonth = toggleMonth;
-window.togglePasswordVisibility = togglePasswordVisibility;
-
 function updateDashboardStats() {
   sb.from("profiles")
     .select("balance")
@@ -1033,11 +879,12 @@ function handleRegisterUser(e) {
       }
     });
 }
+
 // Make functions globally accessible
 window.openDepositManager = openDepositManager;
 window.openWithdrawalManager = openWithdrawalManager;
 window.toggleMonth = toggleMonth;
-window.togglePasswordVisibility = togglePasswordVisibility;
-// Add these lines:
 window.openEditUserModal = openEditUserModal;
 window.deleteUser = deleteUser;
+window.loadAdminDashboard = loadAdminDashboard;
+window.loadUserDashboard = loadUserDashboard;
