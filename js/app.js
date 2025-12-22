@@ -162,6 +162,20 @@ function setupEventListeners() {
       .addEventListener("click", () => changePage(1));
   }
 
+  // Transaction Modal Listeners
+  const viewAllTransactionsBtn = document.getElementById(
+    "viewAllTransactionsBtn"
+  );
+  if (viewAllTransactionsBtn) {
+    viewAllTransactionsBtn.addEventListener("click", openTransactionModal);
+    document
+      .getElementById("closeTransactionModal")
+      .addEventListener("click", () => closeModal("transactionModal"));
+    document
+      .getElementById("closeTransactionModalBtn")
+      .addEventListener("click", () => closeModal("transactionModal"));
+  }
+
   // Hamburger Menu & Mobile Sidebar
   const mobileMenuBtn = document.getElementById("mobileMenuBtn");
   const sidebarOverlay = document.getElementById("sidebarOverlay");
@@ -595,10 +609,71 @@ async function renderDepositCalendar(sessionNumber, userId) {
   ).textContent = `₦${cycleTotal.toLocaleString()}`;
 }
 
+async function openTransactionModal() {
+  const tbody = document.getElementById("fullTransactionTableBody");
+  tbody.innerHTML =
+    '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
+  openModal("transactionModal");
+
+  try {
+    const { data: transactions, error } = await sb
+      .from("transactions")
+      .select("*")
+      .eq("user_id", currentUser.id)
+      .order("transaction_date", { ascending: false });
+
+    if (error) throw error;
+
+    tbody.innerHTML = "";
+
+    if (transactions && transactions.length > 0) {
+      transactions.forEach((tx) => {
+        const tr = document.createElement("tr");
+        const dateStr = tx.transaction_date
+          ? new Date(tx.transaction_date).toLocaleDateString()
+          : "---";
+        tr.innerHTML = `
+                  <td>${dateStr}</td>
+                  <td>${tx.description || tx.type}</td>
+                  <td><span class="${
+                    tx.type === "deposit" ? "type-deposit" : "type-withdrawal"
+                  }">${tx.type}</span></td>
+                  <td style="text-align: right; font-weight: 600; color: var(--dark-gray);">₦${Number(
+                    tx.amount
+                  ).toLocaleString()}</td>
+                `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      tbody.innerHTML =
+        '<tr><td colspan="4" style="text-align:center;">No transactions found.</td></tr>';
+    }
+  } catch (err) {
+    console.error("Error fetching all transactions:", err);
+    tbody.innerHTML =
+      '<tr><td colspan="4" style="text-align:center; color:red;">Failed to load transactions.</td></tr>';
+  }
+}
+
 // --- USER DASHBOARD LOGIC ---
 async function loadUserDashboard() {
   try {
     userPage.style.display = "block";
+
+    // FETCH FRESH USER DATA
+    const { data: freshUser, error: userError } = await sb
+      .from("profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching fresh user data:", userError);
+    } else if (freshUser) {
+      // Update global state and local storage
+      currentUser = freshUser;
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+    }
 
     const fullName = currentUser.full_name || "Member";
     const balance = Number(currentUser.balance) || 0;
@@ -958,18 +1033,40 @@ function toggleMonth(masterCheckbox, gridId) {
   }
 }
 
-function updateDashboardStats() {
-  sb.from("profiles")
-    .select("balance")
-    .then(({ data: profiles }) => {
-      const total = profiles.reduce(
-        (acc, curr) => acc + (curr.balance || 0),
-        0
-      );
-      document.getElementById(
-        "totalBalance"
-      ).textContent = `₦${total.toLocaleString()}`;
-    });
+async function updateDashboardStats() {
+  try {
+    // 1. Fetch all transactions (amount + type)
+    const { data: transactions, error } = await sb
+      .from("transactions")
+      .select("amount, type");
+
+    if (error) throw error;
+
+    // 2. Calculate Totals
+    let totalDeposits = 0;
+    let totalWithdrawals = 0;
+
+    if (transactions) {
+      transactions.forEach((t) => {
+        const amt = Number(t.amount) || 0;
+        if (t.type === "deposit") {
+          totalDeposits += amt;
+        } else if (t.type === "withdrawal") {
+          totalWithdrawals += amt;
+        }
+      });
+    }
+
+    // 3. Update DOM Elements (Admin Page)
+    const depositEl = document.getElementById("totalDeposits");
+    const withdrawalEl = document.getElementById("totalWithdrawals");
+
+    if (depositEl) depositEl.textContent = `₦${totalDeposits.toLocaleString()}`;
+    if (withdrawalEl)
+      withdrawalEl.textContent = `₦${totalWithdrawals.toLocaleString()}`;
+  } catch (err) {
+    console.error("Error updating dashboard stats:", err);
+  }
 }
 
 function handleRegisterUser(e) {

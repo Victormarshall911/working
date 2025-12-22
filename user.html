@@ -229,7 +229,7 @@
             <div class="recent-activity-section">
               <div class="section-header-row">
                 <h3>Recent Transactions</h3>
-                <button class="btn-text">
+                <button class="btn-text" id="viewAllTransactionsBtn">
                   View All <i class="fas fa-arrow-right"></i>
                 </button>
               </div>
@@ -254,6 +254,124 @@
             </div>
           </div>
         </main>
+      </div>
+    </div>
+
+    <!-- Transaction History Modal -->
+    <div
+      id="transactionModal"
+      class="modal"
+      style="display: none; z-index: 3000"
+    >
+      <div class="modal-content" style="max-width: 800px; width: 95%">
+        <div
+          class="modal-header"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
+          <h3
+            style="
+              font-size: 1.25rem;
+              font-weight: 700;
+              color: var(--dark-gray);
+            "
+          >
+            Transaction History
+          </h3>
+          <button
+            id="closeTransactionModal"
+            style="
+              background: none;
+              border: none;
+              font-size: 1.5rem;
+              cursor: pointer;
+              color: var(--medium-gray);
+            "
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body" style="padding: 0">
+          <div
+            class="table-responsive"
+            style="max-height: 500px; overflow-y: auto"
+          >
+            <table class="user-table" style="margin: 0">
+              <thead>
+                <tr>
+                  <th
+                    style="
+                      position: sticky;
+                      top: 0;
+                      background: #f8fafc;
+                      z-index: 10;
+                    "
+                  >
+                    Date
+                  </th>
+                  <th
+                    style="
+                      position: sticky;
+                      top: 0;
+                      background: #f8fafc;
+                      z-index: 10;
+                    "
+                  >
+                    Description
+                  </th>
+                  <th
+                    style="
+                      position: sticky;
+                      top: 0;
+                      background: #f8fafc;
+                      z-index: 10;
+                    "
+                  >
+                    Status
+                  </th>
+                  <th
+                    style="
+                      position: sticky;
+                      top: 0;
+                      background: #f8fafc;
+                      z-index: 10;
+                      text-align: right;
+                    "
+                  >
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="fullTransactionTableBody">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div
+          class="modal-footer"
+          style="
+            padding: 1rem 1.5rem;
+            background: var(--bg-color);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+          "
+        >
+          <button
+            class="btn-logout"
+            id="closeTransactionModalBtn"
+            style="
+              border: 1px solid var(--border-color);
+              color: var(--dark-gray);
+            "
+          >
+            Close
+          </button>
+        </div>
       </div>
     </div>
 
