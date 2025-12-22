@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Happy Family Commission Agency - Secure and convenient daily savings platform. Build wealth one day at a time with our trusted contribution system."
+    />
+    <meta
+      name="keywords"
+      content="savings, daily contribution, investment, wealth building, happy family agency, thrift, nigeria savings"
+    />
+    <meta name="author" content="Happy Family Commission Agency Limited" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://happyfamilyagency.com/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://happyfamilyagency.com/" />
+    <meta
+      property="og:title"
+      content="Happy Family Commission Agency - Building Wealth"
+    />
+    <meta
+      property="og:description"
+      content="Join thousands of members building their financial future with our daily contribution plans."
+    />
+    <meta
+      property="og:image"
+      content="https://happyfamilyagency.com/og-image.jpg"
+    />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://happyfamilyagency.com/" />
+    <meta
+      property="twitter:title"
+      content="Happy Family Commission Agency - Building Wealth"
+    />
+    <meta
+      property="twitter:description"
+      content="Join thousands of members building their financial future with our daily contribution plans."
+    />
+    <meta
+      property="twitter:image"
+      content="https://happyfamilyagency.com/og-image.jpg"
+    />
+
+    <title>Happy Family Commission Agency | Member Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="malc.ico" />
+    <link rel="stylesheet" href="style/HappyFamilyCommission.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  </head>
+
+  <body>
+    <!-- Toast Container for Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div id="userPage">
+      <div class="sidebar-overlay" id="sidebarOverlay"></div>
+      <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="user-sidebar">
+          <div class="user-profile">
+            <div class="profile-avatar">
+              <i
+                class="fas fa-user"
+                style="font-size: 2.5rem; color: rgba(255, 255, 255, 0.8)"
+              ></i>
+            </div>
+            <h3 id="displayUserName">User Name</h3>
+            <p class="user-id">Member ID: ---</p>
+          </div>
+
+          <ul class="user-menu">
+            <li class="active">
+              <a href="#"><i class="fas fa-home"></i> Dashboard</a>
+            </li>
+            <li>
+              <a href="#"><i class="fas fa-history"></i> Transaction History</a>
+            </li>
+            <li>
+              <a href="#"><i class="fas fa-cog"></i> Settings</a>
+            </li>
+          </ul>
+
+          <div
+            style="
+              margin-top: auto;
+              padding-top: 20px;
+              border-top: 1px solid rgba(255, 255, 255, 0.1);
+              position: relative;
+              z-index: 5;
+            "
+          >
+            <button
+              id="userLogoutBtn"
+              class="btn-logout sidebar-logout"
+              type="button"
+            >
+              <i class="fas fa-sign-out-alt" style="pointer-events: none"></i>
+              Logout
+            </button>
+          </div>
+        </aside>
+
+        <main class="main-dashboard">
+          <header class="dashboard-header">
+            <div class="header-left">
+              <button class="hamburger-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+              </button>
+              <div>
+                <h1 style="font-size: 1.5rem; margin-bottom: 4px">Dashboard</h1>
+                <p style="color: var(--medium-gray); font-size: 0.9rem">
+                  Overview of your savings
+                </p>
+              </div>
+            </div>
+            <div class="user-welcome">
+              <div
+                style="
+                  text-align: right;
+                  margin-right: 12px;
+                  display: none;
+                  @media (min-width: 768px) {
+                    display: block;
+                  }
+                "
+              >
+                <span
+                  style="display: block; font-weight: 600; font-size: 0.9rem"
+                  id="headerUserName"
+                  >User</span
+                >
+                <span
+                  style="
+                    display: block;
+                    font-size: 0.8rem;
+                    color: var(--success-green);
+                  "
+                  >Active Member</span
+                >
+              </div>
+              <div class="profile-avatar-small">
+                <i class="fas fa-user"></i>
+              </div>
+            </div>
+          </header>
+
+          <div
+            class="dashboard-content-wrapper"
+            style="padding: 2rem; max-width: 1200px; margin: 0 auto"
+          >
+            <!-- Welcome Banner -->
+            <div class="welcome-banner">
+              <div class="banner-content">
+                <h2>Hello, <span id="currentUserName">User</span>! 👋</h2>
+                <p>
+                  Your financial freedom journey is looking great. Here's your
+                  daily summary.
+                </p>
+                <div class="banner-stats">
+                  <div class="banner-stat">
+                    <span class="label">Daily Goal</span>
+                    <span class="value" id="dailyTargetAmount">₦0</span>
+                  </div>
+                </div>
+              </div>
+              <div class="banner-decoration">
+                <i class="fas fa-wallet"></i>
+              </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid-user">
+              <!-- Main Balance Card -->
+              <div class="stat-card-user balance-highlight">
+                <div class="card-icon"><i class="fas fa-coins"></i></div>
+                <div class="card-info">
+                  <span class="card-label">Total Savings</span>
+                  <h3 class="card-value" id="currentBalance">₦0.00</h3>
+                  <span class="card-trend up"
+                    ><i class="fas fa-arrow-trend-up"></i> Growing</span
+                  >
+                </div>
+              </div>
+
+              <!-- Secondary Stat -->
+              <div class="stat-card-user">
+                <div class="card-icon secondary">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="card-info">
+                  <span class="card-label">Current Session</span>
+                  <h3 class="card-value">2025</h3>
+                  <span class="card-meta">Active</span>
+                </div>
+              </div>
+
+              <!-- Secondary Stat -->
+              <div class="stat-card-user">
+                <div class="card-icon accent">
+                  <i class="fas fa-history"></i>
+                </div>
+                <div class="card-info">
+                  <span class="card-label">Total Transactions</span>
+                  <h3 class="card-value" id="txnCallback">0</h3>
+                  <span class="card-meta">Lifetime</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Transactions Section -->
+            <div class="recent-activity-section">
+              <div class="section-header-row">
+                <h3>Recent Transactions</h3>
+                <button class="btn-text">
+                  View All <i class="fas fa-arrow-right"></i>
+                </button>
+              </div>
+
+              <div class="dashboard-card table-card">
+                <div class="table-responsive">
+                  <table class="user-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th style="text-align: right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody id="transactionTableBody">
+                      <!-- Populated via JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>

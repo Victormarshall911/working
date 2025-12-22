@@ -23,7 +23,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // GLOBAL STATE
 // ============================================
 
-let currentUser = null;
+let currentUser = JSON.parse(localStorage.getItem("currentUser")) || null;
 
 // ============================================
 // TOAST NOTIFICATION SYSTEM
@@ -100,11 +100,6 @@ async function handleLogin(e) {
   const usernameInput = document.getElementById("username").value;
   const passwordInput = document.getElementById("password").value;
   const btn = document.querySelector(".btn-login");
-  
-  // Elements for UI switching
-  const loginPage = document.getElementById("loginPage");
-  // We need to access loadAdminDashboard/loadUserDashboard from app.js
-  // Since they are global, we can call them.
 
   btn.textContent = "Logging in...";
 
@@ -113,7 +108,7 @@ async function handleLogin(e) {
     .select("*")
     .eq("username", usernameInput)
     .eq("password", passwordInput)
-    .single();
+    .maybeSingle();
 
   btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
 
@@ -127,38 +122,29 @@ async function handleLogin(e) {
   }
 
   currentUser = data;
-  loginPage.style.display = "none";
+  localStorage.setItem("currentUser", JSON.stringify(currentUser));
 
   // Show welcome toast
   const welcomeName = currentUser.full_name || currentUser.username || "User";
   showToast("Welcome Back!", `Logged in as ${welcomeName}`, "success");
 
+  // Redirect based on role
   if (currentUser.role === "admin") {
-    if (typeof loadAdminDashboard === 'function') {
-      loadAdminDashboard();
-    } else {
-      console.error("loadAdminDashboard is not defined. Check app.js loading.");
-    }
+    window.location.href = "admin.html";
   } else {
-    if (typeof loadUserDashboard === 'function') {
-      loadUserDashboard();
-    } else {
-      console.error("loadUserDashboard is not defined. Check app.js loading.");
-    }
+    window.location.href = "user.html";
   }
 }
 
 function handleLogout() {
-  const loginPage = document.getElementById("loginPage");
-  const adminPage = document.getElementById("adminPage");
-  const userPage = document.getElementById("userPage");
+  if (confirm("Are you sure you want to sign out?")) {
+    localStorage.removeItem("currentUser");
+    currentUser = null;
+    showToast("Signed Out", "You have been logged out successfully.", "info");
 
-  showToast("Signed Out", "You have been logged out successfully.", "info");
-  currentUser = null;
-  loginPage.style.display = "block";
-  adminPage.style.display = "none";
-  userPage.style.display = "none";
-  document.getElementById("loginForm").reset();
+    // Redirect to login page
+    window.location.href = "index.html";
+  }
 }
 
 // ============================================
@@ -167,8 +153,7 @@ function handleLogout() {
 
 function togglePasswordVisibility() {
   const passwordInput = document.getElementById("password");
-  // Select the icon itself since it has the class toggle-password
-  const toggleIcon = document.querySelector(".toggle-password");
+  const toggleIcon = document.getElementById("togglePassword");
 
   if (!passwordInput || !toggleIcon) return;
 
@@ -188,11 +173,3 @@ function togglePasswordVisibility() {
 window.handleLogin = handleLogin;
 window.handleLogout = handleLogout;
 window.togglePasswordVisibility = togglePasswordVisibility;
-
-// Auto-initialize password toggle
-document.addEventListener("DOMContentLoaded", () => {
-  const toggleIcon = document.querySelector(".toggle-password");
-  if (toggleIcon) {
-    toggleIcon.addEventListener("click", togglePasswordVisibility);
-  }
-});

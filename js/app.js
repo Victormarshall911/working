@@ -31,47 +31,166 @@ const userPage = document.getElementById("userPage");
 // ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Check auth state
+  if (!currentUser && (adminPage || userPage)) {
+    // If trying to access protected pages without login
+    window.location.href = "index.html";
+    return;
+  }
+
+  // Initialize based on current page
+  if (adminPage) {
+    if (currentUser.role !== "admin") {
+      window.location.href = "user.html";
+      return;
+    }
+    loadAdminDashboard();
+  } else if (userPage) {
+    if (currentUser.role === "admin") {
+      window.location.href = "admin.html";
+      return;
+    }
+    loadUserDashboard();
+  }
+
   setupEventListeners();
-  updateDateDisplay();
+  if (typeof updateDateDisplay === "function") updateDateDisplay();
 });
 
 function setupEventListeners() {
   // Auth listeners (functions defined in auth.js)
-  document.getElementById("loginForm").addEventListener("submit", handleLogin);
-  document.getElementById("logoutBtn").addEventListener("click", handleLogout);
-  document.getElementById("userLogoutBtn").addEventListener("click", handleLogout);
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", handleLogin);
+  }
+
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", handleLogout);
+  }
+
+  const userLogoutBtn = document.getElementById("userLogoutBtn");
+  if (userLogoutBtn) {
+    userLogoutBtn.addEventListener("click", handleLogout);
+  }
+
+  // Password Toggle
+  const togglePasswordBtn = document.getElementById("togglePassword");
+  if (togglePasswordBtn) {
+    togglePasswordBtn.addEventListener("click", togglePasswordVisibility);
+  }
 
   // Add User listeners
-  document.getElementById("addUserBtn").addEventListener("click", () => openModal("userModal"));
-  document.getElementById("closeModal").addEventListener("click", () => closeModal("userModal"));
-  document.getElementById("cancelModal").addEventListener("click", () => closeModal("userModal"));
-  document.getElementById("addUserForm").addEventListener("submit", handleRegisterUser);
+  const addUserBtn = document.getElementById("addUserBtn");
+  if (addUserBtn) {
+    addUserBtn.addEventListener("click", () => openModal("userModal"));
+    document
+      .getElementById("closeModal")
+      .addEventListener("click", () => closeModal("userModal"));
+    document
+      .getElementById("cancelModal")
+      .addEventListener("click", () => closeModal("userModal"));
+    document
+      .getElementById("addUserForm")
+      .addEventListener("submit", handleRegisterUser);
+  }
 
   // Edit User listeners
-  document.getElementById("closeEditModal").addEventListener("click", () => closeModal("editUserModal"));
-  document.getElementById("cancelEditModal").addEventListener("click", () => closeModal("editUserModal"));
-  document.getElementById("editUserForm").addEventListener("submit", saveUserEdits);
+  const editUserForm = document.getElementById("editUserForm");
+  if (editUserForm) {
+    document
+      .getElementById("closeEditModal")
+      .addEventListener("click", () => closeModal("editUserModal"));
+    document
+      .getElementById("cancelEditModal")
+      .addEventListener("click", () => closeModal("editUserModal"));
+    editUserForm.addEventListener("submit", saveUserEdits);
+  }
 
   // Deposit/Withdrawal listeners
-  document.getElementById("closeDepositModal").addEventListener("click", () => closeModal("depositModal"));
-  document.getElementById("cancelDepositModal").addEventListener("click", () => closeModal("depositModal"));
-  document.getElementById("confirmDepositModal").addEventListener("click", saveDepositChanges);
+  const depositModal = document.getElementById("depositModal");
+  if (depositModal) {
+    document
+      .getElementById("closeDepositModal")
+      .addEventListener("click", () => closeModal("depositModal"));
+    document
+      .getElementById("cancelDepositModal")
+      .addEventListener("click", () => closeModal("depositModal"));
+    document
+      .getElementById("confirmDepositModal")
+      .addEventListener("click", saveDepositChanges);
+  }
 
-  document.getElementById("closeWithdrawalModal").addEventListener("click", () => closeModal("withdrawalModal"));
-  document.getElementById("cancelWithdrawalModal").addEventListener("click", () => closeModal("withdrawalModal"));
-  document.getElementById("confirmWithdrawalModal").addEventListener("click", saveWithdrawalChanges);
+  const withdrawalModal = document.getElementById("withdrawalModal");
+  if (withdrawalModal) {
+    document
+      .getElementById("closeWithdrawalModal")
+      .addEventListener("click", () => closeModal("withdrawalModal"));
+    document
+      .getElementById("cancelWithdrawalModal")
+      .addEventListener("click", () => closeModal("withdrawalModal"));
+    document
+      .getElementById("confirmWithdrawalModal")
+      .addEventListener("click", saveWithdrawalChanges);
+  }
 
   // Global/Quick Actions
-  document.getElementById("globalDepositBtn").addEventListener("click", focusOnTable);
-  document.getElementById("globalWithdrawalBtn").addEventListener("click", focusOnTable);
-  document.getElementById("exportBtn").addEventListener("click", exportToCSV);
-  document.getElementById("printBtn").addEventListener("click", printReport);
-  document.getElementById("notifyBtn").addEventListener("click", () => alert("Notification system coming soon!"));
+  const globalDepositBtn = document.getElementById("globalDepositBtn");
+  if (globalDepositBtn) {
+    globalDepositBtn.addEventListener("click", focusOnTable);
+    document
+      .getElementById("globalWithdrawalBtn")
+      .addEventListener("click", focusOnTable);
+    document.getElementById("exportBtn").addEventListener("click", exportToCSV);
+    document.getElementById("printBtn").addEventListener("click", printReport);
+    document
+      .getElementById("notifyBtn")
+      .addEventListener("click", () =>
+        alert("Notification system coming soon!")
+      );
+  }
 
   // Search and Pagination
-  document.getElementById("userSearch").addEventListener("input", (e) => filterUsers(e.target.value));
-  document.getElementById("prevPageBtn").addEventListener("click", () => changePage(-1));
-  document.getElementById("nextPageBtn").addEventListener("click", () => changePage(1));
+  const userSearch = document.getElementById("userSearch");
+  if (userSearch) {
+    userSearch.addEventListener("input", (e) => filterUsers(e.target.value));
+    document
+      .getElementById("prevPageBtn")
+      .addEventListener("click", () => changePage(-1));
+    document
+      .getElementById("nextPageBtn")
+      .addEventListener("click", () => changePage(1));
+  }
+
+  // Hamburger Menu & Mobile Sidebar
+  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+  const sidebarOverlay = document.getElementById("sidebarOverlay");
+  const sidebar =
+    document.querySelector(".sidebar") ||
+    document.querySelector(".user-sidebar");
+
+  if (mobileMenuBtn && sidebar && sidebarOverlay) {
+    console.log("Hamburger menu initialized");
+
+    mobileMenuBtn.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent bubbling
+      console.log("Hamburger clicked");
+      sidebar.classList.toggle("active");
+      sidebarOverlay.classList.toggle("active");
+    });
+
+    sidebarOverlay.addEventListener("click", () => {
+      console.log("Overlay clicked");
+      sidebar.classList.remove("active");
+      sidebarOverlay.classList.remove("active");
+    });
+  } else {
+    console.warn("Hamburger menu elements not found:", {
+      btn: !!mobileMenuBtn,
+      sidebar: !!sidebar,
+      overlay: !!sidebarOverlay,
+    });
+  }
 }
 
 // ============================================
@@ -488,6 +607,8 @@ async function loadUserDashboard() {
 
     document.getElementById("currentUserName").textContent = fullName;
     document.getElementById("displayUserName").textContent = fullName;
+    const headerName = document.getElementById("headerUserName");
+    if (headerName) headerName.textContent = fullName;
 
     const idElement = document.querySelector(".user-id");
     if (idElement) idElement.textContent = `Member ID: ${memberId}`;
@@ -499,12 +620,17 @@ async function loadUserDashboard() {
       "dailyTargetAmount"
     ).textContent = `₦${daily.toLocaleString()}`;
 
-    const { data: transactions } = await sb
+    const { data: transactions, count } = await sb
       .from("transactions")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("user_id", currentUser.id)
       .order("transaction_date", { ascending: false })
       .limit(30);
+
+    const txnCallback = document.getElementById("txnCallback");
+    if (txnCallback)
+      txnCallback.textContent =
+        count || (transactions ? transactions.length : 0);
 
     const tbody = document.getElementById("transactionTableBody");
     tbody.innerHTML = "";
@@ -512,19 +638,24 @@ async function loadUserDashboard() {
     if (transactions && transactions.length > 0) {
       transactions.forEach((tx) => {
         const tr = document.createElement("tr");
+        const dateStr = tx.transaction_date
+          ? new Date(tx.transaction_date).toLocaleDateString()
+          : "---";
         tr.innerHTML = `
-          <td>#${tx.id.slice(0, 8)}</td>
+          <td>${dateStr}</td>
           <td>${tx.description || tx.type}</td>
-          <td>₦${Number(tx.amount).toLocaleString()}</td>
           <td><span class="${
             tx.type === "deposit" ? "type-deposit" : "type-withdrawal"
           }">${tx.type}</span></td>
+          <td style="text-align: right; font-weight: 600; color: var(--dark-gray);">₦${Number(
+            tx.amount
+          ).toLocaleString()}</td>
         `;
         tbody.appendChild(tr);
       });
     } else {
       tbody.innerHTML =
-        '<tr><td colspan="4" style="text-align:center;">No recent transactions.</td></tr>';
+        '<tr><td colspan="4" style="text-align:center; padding: 2rem; color: var(--medium-gray);">No recent transactions found.</td></tr>';
     }
   } catch (err) {
     console.error("Dashboard Error:", err);
@@ -537,7 +668,7 @@ async function loadUserDashboard() {
 
 function openEditUserModal(userId) {
   // Find the user in our local list
-  const user = allUsers.find(u => u.id === userId);
+  const user = allUsers.find((u) => u.id === userId);
   if (!user) return;
 
   // Populate fields
@@ -554,10 +685,10 @@ function openEditUserModal(userId) {
 
 async function saveUserEdits(e) {
   e.preventDefault();
-  
+
   const userId = document.getElementById("editUserId").value;
   const btn = document.querySelector("#editUserForm .btn-save");
-  
+
   // Get values
   const updates = {
     member_id: document.getElementById("editMemberId").value.trim(),
@@ -569,10 +700,7 @@ async function saveUserEdits(e) {
 
   btn.textContent = "Saving...";
 
-  const { error } = await sb
-    .from('profiles')
-    .update(updates)
-    .eq('id', userId);
+  const { error } = await sb.from("profiles").update(updates).eq("id", userId);
 
   btn.textContent = "Save Changes";
 
@@ -587,29 +715,39 @@ async function saveUserEdits(e) {
 
 async function deleteUser(userId, userName) {
   // Confirmation Alert
-  const confirmed = confirm(`Are you sure you want to PERMANENTLY DELETE ${userName}?\n\nThis will remove their account and ALL transaction history.\nThis action cannot be undone.`);
-  
+  const confirmed = confirm(
+    `Are you sure you want to PERMANENTLY DELETE ${userName}?\n\nThis will remove their account and ALL transaction history.\nThis action cannot be undone.`
+  );
+
   if (!confirmed) return;
 
   // 1. Delete Transactions first (Foreign Key Constraint)
   const { error: txError } = await sb
-    .from('transactions')
+    .from("transactions")
     .delete()
-    .eq('user_id', userId);
+    .eq("user_id", userId);
 
   if (txError) {
-    showToast("Error", "Could not delete transaction history: " + txError.message, "error");
+    showToast(
+      "Error",
+      "Could not delete transaction history: " + txError.message,
+      "error"
+    );
     return;
   }
 
   // 2. Delete Profile
   const { error: userError } = await sb
-    .from('profiles')
+    .from("profiles")
     .delete()
-    .eq('id', userId);
+    .eq("id", userId);
 
   if (userError) {
-    showToast("Error", "Could not delete user profile: " + userError.message, "error");
+    showToast(
+      "Error",
+      "Could not delete user profile: " + userError.message,
+      "error"
+    );
   } else {
     showToast("Deleted", `${userName} has been deleted.`, "success");
     fetchUsers(); // Refresh table
@@ -633,19 +771,20 @@ function updateDateDisplay() {
       year: "numeric",
       month: "long",
       day: "numeric",
-      });
+    });
 }
 
 function filterUsers(query) {
-    const lowerQuery = query.trim().toLowerCase();
-    
-    const filtered = allUsers.filter(user => 
-        (user.full_name || '').toLowerCase().includes(lowerQuery) || 
-        (user.username || '').toLowerCase().includes(lowerQuery) ||
-        (user.member_id || '').toLowerCase().includes(lowerQuery) // <-- Now searches ID too
-    );
-    
-    renderUserTable(filtered);
+  const lowerQuery = query.trim().toLowerCase();
+
+  const filtered = allUsers.filter(
+    (user) =>
+      (user.full_name || "").toLowerCase().includes(lowerQuery) ||
+      (user.username || "").toLowerCase().includes(lowerQuery) ||
+      (user.member_id || "").toLowerCase().includes(lowerQuery) // <-- Now searches ID too
+  );
+
+  renderUserTable(filtered);
 }
 
 function formatDate(date) {
