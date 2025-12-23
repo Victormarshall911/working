@@ -2,16 +2,27 @@
  * Happy Family Commission Agency - Main Application Script
  *
  * This script handles:
+ * - User authentication (login/logout)
  * - Admin dashboard functionality (user management, deposits, withdrawals)
  * - User dashboard functionality
- * - Modals and Event Listeners
+ * - Toast notifications
  */
 
 // ============================================
-// GLOBAL STATE (Extended from auth.js)
+// SUPABASE CONFIGURATION
 // ============================================
 
-// 'currentUser' and 'sb' are provided by auth.js
+const SUPABASE_URL = "https://zxgqfimgldsxgjewmoyi.supabase.co";
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp4Z3FmaW1nbGRzeGdqZXdtb3lpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU1MDE3NzAsImV4cCI6MjA4MTA3Nzc3MH0.GBadxzt4jidJLrrG106YK5FBzrJiQTsuIAZvA_0PqkU";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============================================
+// GLOBAL STATE
+// ============================================
+
+let currentUser = null;
 let selectedUserId = null;
 const currentYear = new Date().getFullYear();
 let allUsers = [];
@@ -27,190 +38,174 @@ const adminPage = document.getElementById("adminPage");
 const userPage = document.getElementById("userPage");
 
 // ============================================
+// TOAST NOTIFICATION SYSTEM
+// ============================================
+
+/**
+ * Show a toast notification
+ * @param {string} title - Toast title
+ * @param {string} message - Toast message
+ * @param {string} type - Toast type: 'success', 'error', 'warning', 'info'
+ * @param {number} duration - Duration in milliseconds (default: 4000)
+ */
+function showToast(title, message, type = "info", duration = 4000) {
+  const container = document.getElementById("toastContainer");
+  if (!container) return;
+
+  // Icon mapping for each toast type
+  const icons = {
+    success: "fa-check",
+    error: "fa-times",
+    warning: "fa-exclamation",
+    info: "fa-info",
+  };
+
+  // Create toast element
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon">
+      <i class="fas ${icons[type]}"></i>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title">${title}</div>
+      <div class="toast-message">${message}</div>
+    </div>
+    <button class="toast-close" onclick="closeToast(this)">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+
+  container.appendChild(toast);
+
+  // Auto-remove toast after duration
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.classList.add("toast-hiding");
+      setTimeout(() => toast.remove(), 300);
+    }
+  }, duration);
+}
+
+/**
+ * Close a specific toast
+ * @param {HTMLElement} button - The close button element
+ */
+function closeToast(button) {
+  const toast = button.closest(".toast");
+  if (toast) {
+    toast.classList.add("toast-hiding");
+    setTimeout(() => toast.remove(), 300);
+  }
+}
+
+// Make toast functions globally accessible
+window.showToast = showToast;
+window.closeToast = closeToast;
+
+// ============================================
 // INITIALIZATION
 // ============================================
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Check auth state
-  if (!currentUser && (adminPage || userPage)) {
-    // If trying to access protected pages without login
-    window.location.href = "index.html";
-    return;
-  }
-
-  // Initialize based on current page
-  if (adminPage) {
-    if (currentUser.role !== "admin") {
-      window.location.href = "user.html";
-      return;
-    }
-    loadAdminDashboard();
-  } else if (userPage) {
-    if (currentUser.role === "admin") {
-      window.location.href = "admin.html";
-      return;
-    }
-    loadUserDashboard();
-  }
-
   setupEventListeners();
-  if (typeof updateDateDisplay === "function") updateDateDisplay();
+  updateDateDisplay();
 });
 
 function setupEventListeners() {
-  // Auth listeners (functions defined in auth.js)
-  const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
-    loginForm.addEventListener("submit", handleLogin);
-  }
+  // ... (keep existing Auth listeners) ...
+  document.getElementById("loginForm").addEventListener("submit", handleLogin);
+  document.getElementById("logoutBtn").addEventListener("click", handleLogout);
+  document.getElementById("userLogoutBtn").addEventListener("click", handleLogout);
 
-  const logoutBtn = document.getElementById("logoutBtn");
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", handleLogout);
-  }
+  // ... (keep existing Add User listeners) ...
+  document.getElementById("addUserBtn").addEventListener("click", () => openModal("userModal"));
+  document.getElementById("closeModal").addEventListener("click", () => closeModal("userModal"));
+  document.getElementById("cancelModal").addEventListener("click", () => closeModal("userModal"));
+  document.getElementById("addUserForm").addEventListener("submit", handleRegisterUser);
 
-  const userLogoutBtn = document.getElementById("userLogoutBtn");
-  if (userLogoutBtn) {
-    userLogoutBtn.addEventListener("click", handleLogout);
-  }
+  // --- NEW: EDIT USER LISTENERS ---
+  document.getElementById("closeEditModal").addEventListener("click", () => closeModal("editUserModal"));
+  document.getElementById("cancelEditModal").addEventListener("click", () => closeModal("editUserModal"));
+  document.getElementById("editUserForm").addEventListener("submit", saveUserEdits);
+  // --------------------------------
 
-  // Password Toggle
-  const togglePasswordBtn = document.getElementById("togglePassword");
-  if (togglePasswordBtn) {
-    togglePasswordBtn.addEventListener("click", togglePasswordVisibility);
-  }
+  // ... (keep existing Deposit/Withdrawal listeners) ...
+  document.getElementById("closeDepositModal").addEventListener("click", () => closeModal("depositModal"));
+  document.getElementById("cancelDepositModal").addEventListener("click", () => closeModal("depositModal"));
+  document.getElementById("confirmDepositModal").addEventListener("click", saveDepositChanges);
 
-  // Add User listeners
-  const addUserBtn = document.getElementById("addUserBtn");
-  if (addUserBtn) {
-    addUserBtn.addEventListener("click", () => openModal("userModal"));
-    document
-      .getElementById("closeModal")
-      .addEventListener("click", () => closeModal("userModal"));
-    document
-      .getElementById("cancelModal")
-      .addEventListener("click", () => closeModal("userModal"));
-    document
-      .getElementById("addUserForm")
-      .addEventListener("submit", handleRegisterUser);
-  }
+  document.getElementById("closeWithdrawalModal").addEventListener("click", () => closeModal("withdrawalModal"));
+  document.getElementById("cancelWithdrawalModal").addEventListener("click", () => closeModal("withdrawalModal"));
+  document.getElementById("confirmWithdrawalModal").addEventListener("click", saveWithdrawalChanges);
 
-  // Edit User listeners
-  const editUserForm = document.getElementById("editUserForm");
-  if (editUserForm) {
-    document
-      .getElementById("closeEditModal")
-      .addEventListener("click", () => closeModal("editUserModal"));
-    document
-      .getElementById("cancelEditModal")
-      .addEventListener("click", () => closeModal("editUserModal"));
-    editUserForm.addEventListener("submit", saveUserEdits);
-  }
+  // ... (keep existing Global/Quick Actions) ...
+  document.getElementById("globalDepositBtn").addEventListener("click", focusOnTable);
+  document.getElementById("globalWithdrawalBtn").addEventListener("click", focusOnTable);
+  document.getElementById("exportBtn").addEventListener("click", exportToCSV);
+  document.getElementById("printBtn").addEventListener("click", printReport);
+  document.getElementById("notifyBtn").addEventListener("click", () => alert("Notification system coming soon!"));
 
-  // Deposit/Withdrawal listeners
-  const depositModal = document.getElementById("depositModal");
-  if (depositModal) {
-    document
-      .getElementById("closeDepositModal")
-      .addEventListener("click", () => closeModal("depositModal"));
-    document
-      .getElementById("cancelDepositModal")
-      .addEventListener("click", () => closeModal("depositModal"));
-    document
-      .getElementById("confirmDepositModal")
-      .addEventListener("click", saveDepositChanges);
-  }
-
-  const withdrawalModal = document.getElementById("withdrawalModal");
-  if (withdrawalModal) {
-    document
-      .getElementById("closeWithdrawalModal")
-      .addEventListener("click", () => closeModal("withdrawalModal"));
-    document
-      .getElementById("cancelWithdrawalModal")
-      .addEventListener("click", () => closeModal("withdrawalModal"));
-    document
-      .getElementById("confirmWithdrawalModal")
-      .addEventListener("click", saveWithdrawalChanges);
-  }
-
-  // Global/Quick Actions
-  const globalDepositBtn = document.getElementById("globalDepositBtn");
-  if (globalDepositBtn) {
-    globalDepositBtn.addEventListener("click", focusOnTable);
-    document
-      .getElementById("globalWithdrawalBtn")
-      .addEventListener("click", focusOnTable);
-    document.getElementById("exportBtn").addEventListener("click", exportToCSV);
-    document.getElementById("printBtn").addEventListener("click", printReport);
-    document
-      .getElementById("notifyBtn")
-      .addEventListener("click", () =>
-        alert("Notification system coming soon!")
-      );
-  }
-
-  // Search and Pagination
-  const userSearch = document.getElementById("userSearch");
-  if (userSearch) {
-    userSearch.addEventListener("input", (e) => filterUsers(e.target.value));
-    document
-      .getElementById("prevPageBtn")
-      .addEventListener("click", () => changePage(-1));
-    document
-      .getElementById("nextPageBtn")
-      .addEventListener("click", () => changePage(1));
-  }
-
-  // Transaction Modal Listeners
-  const viewAllTransactionsBtn = document.getElementById(
-    "viewAllTransactionsBtn"
-  );
-  if (viewAllTransactionsBtn) {
-    viewAllTransactionsBtn.addEventListener("click", openTransactionModal);
-    document
-      .getElementById("closeTransactionModal")
-      .addEventListener("click", () => closeModal("transactionModal"));
-    document
-      .getElementById("closeTransactionModalBtn")
-      .addEventListener("click", () => closeModal("transactionModal"));
-  }
-
-  // Hamburger Menu & Mobile Sidebar
-  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-  const sidebarOverlay = document.getElementById("sidebarOverlay");
-  const sidebar =
-    document.querySelector(".sidebar") ||
-    document.querySelector(".user-sidebar");
-
-  if (mobileMenuBtn && sidebar && sidebarOverlay) {
-    console.log("Hamburger menu initialized");
-
-    mobileMenuBtn.addEventListener("click", (e) => {
-      e.stopPropagation(); // Prevent bubbling
-      console.log("Hamburger clicked");
-      sidebar.classList.toggle("active");
-      sidebarOverlay.classList.toggle("active");
-    });
-
-    sidebarOverlay.addEventListener("click", () => {
-      console.log("Overlay clicked");
-      sidebar.classList.remove("active");
-      sidebarOverlay.classList.remove("active");
-    });
-  } else {
-    console.warn("Hamburger menu elements not found:", {
-      btn: !!mobileMenuBtn,
-      sidebar: !!sidebar,
-      overlay: !!sidebarOverlay,
-    });
-  }
+  // ... (keep existing Search) ...
+  document.getElementById("userSearch").addEventListener("input", (e) => filterUsers(e.target.value));
+  document.getElementById("prevPageBtn").addEventListener("click", () => changePage(-1));
+  document.getElementById("nextPageBtn").addEventListener("click", () => changePage(1));
 }
 
 // ============================================
-// ADMIN DASHBOARD LOGIC
+// AUTHENTICATION
 // ============================================
 
+async function handleLogin(e) {
+  e.preventDefault();
+  const usernameInput = document.getElementById("username").value;
+  const passwordInput = document.getElementById("password").value;
+  const btn = document.querySelector(".btn-login");
+
+  btn.textContent = "Logging in...";
+
+  const { data, error } = await sb
+    .from("profiles")
+    .select("*")
+    .eq("username", usernameInput)
+    .eq("password", passwordInput)
+    .single();
+
+  btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+
+  if (error || !data) {
+    showToast(
+      "Login Failed",
+      "Invalid username or password. Please try again.",
+      "error"
+    );
+    return;
+  }
+
+  currentUser = data;
+  loginPage.style.display = "none";
+
+  // Show welcome toast
+  const welcomeName = currentUser.full_name || currentUser.username || "User";
+  showToast("Welcome Back!", `Logged in as ${welcomeName}`, "success");
+
+  if (currentUser.role === "admin") {
+    loadAdminDashboard();
+  } else {
+    loadUserDashboard();
+  }
+}
+
+function handleLogout() {
+  showToast("Signed Out", "You have been logged out successfully.", "info");
+  currentUser = null;
+  loginPage.style.display = "block";
+  adminPage.style.display = "none";
+  userPage.style.display = "none";
+  document.getElementById("loginForm").reset();
+}
+
+// --- ADMIN DASHBOARD LOGIC ---
 async function loadAdminDashboard() {
   adminPage.style.display = "block";
   await fetchUsers();
@@ -609,71 +604,10 @@ async function renderDepositCalendar(sessionNumber, userId) {
   ).textContent = `₦${cycleTotal.toLocaleString()}`;
 }
 
-async function openTransactionModal() {
-  const tbody = document.getElementById("fullTransactionTableBody");
-  tbody.innerHTML =
-    '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
-  openModal("transactionModal");
-
-  try {
-    const { data: transactions, error } = await sb
-      .from("transactions")
-      .select("*")
-      .eq("user_id", currentUser.id)
-      .order("transaction_date", { ascending: false });
-
-    if (error) throw error;
-
-    tbody.innerHTML = "";
-
-    if (transactions && transactions.length > 0) {
-      transactions.forEach((tx) => {
-        const tr = document.createElement("tr");
-        const dateStr = tx.transaction_date
-          ? new Date(tx.transaction_date).toLocaleDateString()
-          : "---";
-        tr.innerHTML = `
-                  <td>${dateStr}</td>
-                  <td>${tx.description || tx.type}</td>
-                  <td><span class="${
-                    tx.type === "deposit" ? "type-deposit" : "type-withdrawal"
-                  }">${tx.type}</span></td>
-                  <td style="text-align: right; font-weight: 600; color: var(--dark-gray);">₦${Number(
-                    tx.amount
-                  ).toLocaleString()}</td>
-                `;
-        tbody.appendChild(tr);
-      });
-    } else {
-      tbody.innerHTML =
-        '<tr><td colspan="4" style="text-align:center;">No transactions found.</td></tr>';
-    }
-  } catch (err) {
-    console.error("Error fetching all transactions:", err);
-    tbody.innerHTML =
-      '<tr><td colspan="4" style="text-align:center; color:red;">Failed to load transactions.</td></tr>';
-  }
-}
-
 // --- USER DASHBOARD LOGIC ---
 async function loadUserDashboard() {
   try {
     userPage.style.display = "block";
-
-    // FETCH FRESH USER DATA
-    const { data: freshUser, error: userError } = await sb
-      .from("profiles")
-      .select("*")
-      .eq("id", currentUser.id)
-      .single();
-
-    if (userError) {
-      console.error("Error fetching fresh user data:", userError);
-    } else if (freshUser) {
-      // Update global state and local storage
-      currentUser = freshUser;
-      localStorage.setItem("currentUser", JSON.stringify(currentUser));
-    }
 
     const fullName = currentUser.full_name || "Member";
     const balance = Number(currentUser.balance) || 0;
@@ -682,8 +616,6 @@ async function loadUserDashboard() {
 
     document.getElementById("currentUserName").textContent = fullName;
     document.getElementById("displayUserName").textContent = fullName;
-    const headerName = document.getElementById("headerUserName");
-    if (headerName) headerName.textContent = fullName;
 
     const idElement = document.querySelector(".user-id");
     if (idElement) idElement.textContent = `Member ID: ${memberId}`;
@@ -695,17 +627,12 @@ async function loadUserDashboard() {
       "dailyTargetAmount"
     ).textContent = `₦${daily.toLocaleString()}`;
 
-    const { data: transactions, count } = await sb
+    const { data: transactions } = await sb
       .from("transactions")
-      .select("*", { count: "exact" })
+      .select("*")
       .eq("user_id", currentUser.id)
       .order("transaction_date", { ascending: false })
       .limit(30);
-
-    const txnCallback = document.getElementById("txnCallback");
-    if (txnCallback)
-      txnCallback.textContent =
-        count || (transactions ? transactions.length : 0);
 
     const tbody = document.getElementById("transactionTableBody");
     tbody.innerHTML = "";
@@ -713,24 +640,19 @@ async function loadUserDashboard() {
     if (transactions && transactions.length > 0) {
       transactions.forEach((tx) => {
         const tr = document.createElement("tr");
-        const dateStr = tx.transaction_date
-          ? new Date(tx.transaction_date).toLocaleDateString()
-          : "---";
         tr.innerHTML = `
-          <td>${dateStr}</td>
+          <td>#${tx.id.slice(0, 8)}</td>
           <td>${tx.description || tx.type}</td>
+          <td>₦${Number(tx.amount).toLocaleString()}</td>
           <td><span class="${
             tx.type === "deposit" ? "type-deposit" : "type-withdrawal"
           }">${tx.type}</span></td>
-          <td style="text-align: right; font-weight: 600; color: var(--dark-gray);">₦${Number(
-            tx.amount
-          ).toLocaleString()}</td>
         `;
         tbody.appendChild(tr);
       });
     } else {
       tbody.innerHTML =
-        '<tr><td colspan="4" style="text-align:center; padding: 2rem; color: var(--medium-gray);">No recent transactions found.</td></tr>';
+        '<tr><td colspan="4" style="text-align:center;">No recent transactions.</td></tr>';
     }
   } catch (err) {
     console.error("Dashboard Error:", err);
@@ -743,7 +665,7 @@ async function loadUserDashboard() {
 
 function openEditUserModal(userId) {
   // Find the user in our local list
-  const user = allUsers.find((u) => u.id === userId);
+  const user = allUsers.find(u => u.id === userId);
   if (!user) return;
 
   // Populate fields
@@ -760,10 +682,10 @@ function openEditUserModal(userId) {
 
 async function saveUserEdits(e) {
   e.preventDefault();
-
+  
   const userId = document.getElementById("editUserId").value;
   const btn = document.querySelector("#editUserForm .btn-save");
-
+  
   // Get values
   const updates = {
     member_id: document.getElementById("editMemberId").value.trim(),
@@ -771,11 +693,15 @@ async function saveUserEdits(e) {
     phone: document.getElementById("editPhone").value.trim(),
     daily_amount: document.getElementById("editDailyAmount").value,
     email: document.getElementById("editEmail").value.trim(),
+    // We usually update full_name if it changes, here assuming username logic stays
   };
 
   btn.textContent = "Saving...";
 
-  const { error } = await sb.from("profiles").update(updates).eq("id", userId);
+  const { error } = await sb
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId);
 
   btn.textContent = "Save Changes";
 
@@ -790,39 +716,29 @@ async function saveUserEdits(e) {
 
 async function deleteUser(userId, userName) {
   // Confirmation Alert
-  const confirmed = confirm(
-    `Are you sure you want to PERMANENTLY DELETE ${userName}?\n\nThis will remove their account and ALL transaction history.\nThis action cannot be undone.`
-  );
-
+  const confirmed = confirm(`Are you sure you want to PERMANENTLY DELETE ${userName}?\n\nThis will remove their account and ALL transaction history.\nThis action cannot be undone.`);
+  
   if (!confirmed) return;
 
   // 1. Delete Transactions first (Foreign Key Constraint)
   const { error: txError } = await sb
-    .from("transactions")
+    .from('transactions')
     .delete()
-    .eq("user_id", userId);
+    .eq('user_id', userId);
 
   if (txError) {
-    showToast(
-      "Error",
-      "Could not delete transaction history: " + txError.message,
-      "error"
-    );
+    showToast("Error", "Could not delete transaction history: " + txError.message, "error");
     return;
   }
 
   // 2. Delete Profile
   const { error: userError } = await sb
-    .from("profiles")
+    .from('profiles')
     .delete()
-    .eq("id", userId);
+    .eq('id', userId);
 
   if (userError) {
-    showToast(
-      "Error",
-      "Could not delete user profile: " + userError.message,
-      "error"
-    );
+    showToast("Error", "Could not delete user profile: " + userError.message, "error");
   } else {
     showToast("Deleted", `${userName} has been deleted.`, "success");
     fetchUsers(); // Refresh table
@@ -850,16 +766,15 @@ function updateDateDisplay() {
 }
 
 function filterUsers(query) {
-  const lowerQuery = query.trim().toLowerCase();
-
-  const filtered = allUsers.filter(
-    (user) =>
-      (user.full_name || "").toLowerCase().includes(lowerQuery) ||
-      (user.username || "").toLowerCase().includes(lowerQuery) ||
-      (user.member_id || "").toLowerCase().includes(lowerQuery) // <-- Now searches ID too
-  );
-
-  renderUserTable(filtered);
+    const lowerQuery = query.trim().toLowerCase();
+    
+    const filtered = allUsers.filter(user => 
+        (user.full_name || '').toLowerCase().includes(lowerQuery) || 
+        (user.username || '').toLowerCase().includes(lowerQuery) ||
+        (user.member_id || '').toLowerCase().includes(lowerQuery) // <-- Now searches ID too
+    );
+    
+    renderUserTable(filtered);
 }
 
 function formatDate(date) {
@@ -1033,40 +948,43 @@ function toggleMonth(masterCheckbox, gridId) {
   }
 }
 
-async function updateDashboardStats() {
-  try {
-    // 1. Fetch all transactions (amount + type)
-    const { data: transactions, error } = await sb
-      .from("transactions")
-      .select("amount, type");
+// Toggles the visibility of the password input field
+function togglePasswordVisibility() {
+  const passwordInput = document.getElementById("password");
+  const toggleIcon = document.querySelector(".toggle-password i");
 
-    if (error) throw error;
+  if (!passwordInput || !toggleIcon) return;
 
-    // 2. Calculate Totals
-    let totalDeposits = 0;
-    let totalWithdrawals = 0;
-
-    if (transactions) {
-      transactions.forEach((t) => {
-        const amt = Number(t.amount) || 0;
-        if (t.type === "deposit") {
-          totalDeposits += amt;
-        } else if (t.type === "withdrawal") {
-          totalWithdrawals += amt;
-        }
-      });
-    }
-
-    // 3. Update DOM Elements (Admin Page)
-    const depositEl = document.getElementById("totalDeposits");
-    const withdrawalEl = document.getElementById("totalWithdrawals");
-
-    if (depositEl) depositEl.textContent = `₦${totalDeposits.toLocaleString()}`;
-    if (withdrawalEl)
-      withdrawalEl.textContent = `₦${totalWithdrawals.toLocaleString()}`;
-  } catch (err) {
-    console.error("Error updating dashboard stats:", err);
+  // Toggle input type
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+    toggleIcon.classList.remove("fa-eye-slash");
+    toggleIcon.classList.add("fa-eye");
+  } else {
+    passwordInput.type = "password";
+    toggleIcon.classList.remove("fa-eye");
+    toggleIcon.classList.add("fa-eye-slash");
   }
+}
+
+// Make functions globally accessible
+window.openDepositManager = openDepositManager;
+window.openWithdrawalManager = openWithdrawalManager;
+window.toggleMonth = toggleMonth;
+window.togglePasswordVisibility = togglePasswordVisibility;
+
+function updateDashboardStats() {
+  sb.from("profiles")
+    .select("balance")
+    .then(({ data: profiles }) => {
+      const total = profiles.reduce(
+        (acc, curr) => acc + (curr.balance || 0),
+        0
+      );
+      document.getElementById(
+        "totalBalance"
+      ).textContent = `₦${total.toLocaleString()}`;
+    });
 }
 
 function handleRegisterUser(e) {
@@ -1115,12 +1033,11 @@ function handleRegisterUser(e) {
       }
     });
 }
-
 // Make functions globally accessible
 window.openDepositManager = openDepositManager;
 window.openWithdrawalManager = openWithdrawalManager;
 window.toggleMonth = toggleMonth;
+window.togglePasswordVisibility = togglePasswordVisibility;
+// Add these lines:
 window.openEditUserModal = openEditUserModal;
 window.deleteUser = deleteUser;
-window.loadAdminDashboard = loadAdminDashboard;
-window.loadUserDashboard = loadUserDashboard;
