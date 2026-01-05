@@ -213,21 +213,29 @@ async function loadAdminDashboard() {
 }
 
 async function fetchUsers() {
-  const { data: users, error } = await sb
-    .from("profiles")
-    .select("*")
-    .neq("role", "admin")
-    .order("created_at", { ascending: false });
+    console.log("🔄 Fetching users...");
 
-  if (error) {
-    console.error("Error fetching users:", error);
-    return;
-  }
+    // 1. Fetch ALL profiles without database filters (removes potential bugs)
+    const { data: users, error } = await sb
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  allUsers = users;
-  renderUserTable();
+    if (error) {
+        console.error('❌ Error fetching users:', error);
+        showToast("Error", "Could not load users.", "error");
+        return;
+    }
+
+    // 2. Filter out Admins using JavaScript (More reliable)
+    // We check if role is 'admin' (case-insensitive)
+    allUsers = users.filter(u => (u.role || '').toLowerCase() !== 'admin');
+
+    console.log(`✅ Loaded ${allUsers.length} users.`, allUsers);
+    
+    // 3. Update the UI
+    renderUserTable();
 }
-
 function renderUserTable(usersToRender = null) {
   const list = usersToRender || allUsers;
   const tbody = document.getElementById("userTableBody");
