@@ -213,28 +213,53 @@ async function loadAdminDashboard() {
 }
 
 async function fetchUsers() {
-    console.log("🔄 Fetching users...");
+    console.log("🔄 Fetching ALL users in chunks...");
+    
+    let allFetchedUsers = [];
+    let from = 0;
+    const pageSize = 1000; // The limit we know exists
+    let keepFetching = true;
 
-    // FIX: Added .limit(5000) to get everyone. 
-    // Without this, Supabase stops at 1000.
-    const { data: users, error } = await sb
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5000); 
+    // Loop until we run out of data
+    while (keepFetching) {
+        const to = from + pageSize - 1;
+        
+        console.log(`📡 Fetching rows ${from} to ${to}...`);
 
-    if (error) {
-        console.error('❌ Error fetching users:', error);
-        showToast("Error", "Could not load users.", "error");
-        return;
+        const { data: chunk, error } = await sb
+            .from('profiles')
+            .select('*')
+            .range(from, to) // Ask for a specific slice of data
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('❌ Error fetching chunk:', error);
+            showToast("Error", "Could not load full user list.", "error");
+            return;
+        }
+
+        // Add this chunk to our main list
+        if (chunk && chunk.length > 0) {
+            allFetchedUsers = allFetchedUsers.concat(chunk);
+            
+            // Prepare for next page
+            from += pageSize;
+            
+            // If we got fewer rows than we asked for, we have reached the end
+            if (chunk.length < pageSize) {
+                keepFetching = false;
+            }
+        } else {
+            keepFetching = false;
+        }
     }
 
-    // Filter out Admins
-    allUsers = users.filter(u => (u.role || '').toLowerCase() !== 'admin');
+    // Filter out Admins from the complete list
+    allUsers = allFetchedUsers.filter(u => (u.role || '').toLowerCase() !== 'admin');
 
-    console.log(`✅ Loaded ${allUsers.length} users.`, allUsers);
+    console.log(`✅ SUCCESS: Loaded ${allFetchedUsers.length} total records from database.`);
+    console.log(`👥 Displaying ${allUsers.length} non-admin users.`);
     
-    // Update the UI
     renderUserTable();
 }
 function renderUserTable(usersToRender = null) {
