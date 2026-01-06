@@ -215,11 +215,13 @@ async function loadAdminDashboard() {
 async function fetchUsers() {
     console.log("🔄 Fetching users...");
 
-    // 1. Fetch ALL profiles without database filters (removes potential bugs)
+    // FIX: Added .limit(5000) to get everyone. 
+    // Without this, Supabase stops at 1000.
     const { data: users, error } = await sb
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(5000); 
 
     if (error) {
         console.error('❌ Error fetching users:', error);
@@ -227,13 +229,12 @@ async function fetchUsers() {
         return;
     }
 
-    // 2. Filter out Admins using JavaScript (More reliable)
-    // We check if role is 'admin' (case-insensitive)
+    // Filter out Admins
     allUsers = users.filter(u => (u.role || '').toLowerCase() !== 'admin');
 
     console.log(`✅ Loaded ${allUsers.length} users.`, allUsers);
     
-    // 3. Update the UI
+    // Update the UI
     renderUserTable();
 }
 function renderUserTable(usersToRender = null) {
