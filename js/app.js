@@ -142,6 +142,7 @@ function setupEventListeners() {
       .getElementById("globalWithdrawalBtn")
       .addEventListener("click", focusOnTable);
     document.getElementById("exportBtn").addEventListener("click", exportToCSV);
+    document.getElementById("exportPhoneBtn").addEventListener("click", exportPhoneNumbersToCSV);
     document.getElementById("printBtn").addEventListener("click", printReport);
     document
       .getElementById("notifyBtn")
@@ -218,19 +219,28 @@ async function loadAdminDashboard() {
 }
 
 async function fetchUsers() {
-  const { data: users, error } = await sb
-    .from("profiles")
-    .select("*")
-    .neq("role", "admin")
-    .order("created_at", { ascending: false });
+    console.log("🔄 Fetching users...");
 
-  if (error) {
-    console.error("Error fetching users:", error);
-    return;
-  }
+    // 1. Fetch ALL profiles without database filters (removes potential bugs)
+    const { data: users, error } = await sb
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-  allUsers = users;
-  renderUserTable();
+    if (error) {
+        console.error('❌ Error fetching users:', error);
+        showToast("Error", "Could not load users.", "error");
+        return;
+    }
+
+    // 2. Filter out Admins using JavaScript (More reliable)
+    // We check if role is 'admin' (case-insensitive)
+    allUsers = users.filter(u => (u.role || '').toLowerCase() !== 'admin');
+
+    console.log(`✅ Loaded ${allUsers.length} users.`, allUsers);
+    
+    // 3. Update the UI
+    renderUserTable();
 }
 
 function renderUserTable(usersToRender = null) {
@@ -327,6 +337,35 @@ function exportToCSV() {
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
   link.setAttribute("download", "happy_family_users.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function exportPhoneNumbersToCSV() {
+  if (allUsers.length === 0) {
+    alert("No data to export");
+    return;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "Full Name,Phone Number\n";
+
+  allUsers.forEach((user) => {
+    // Only include users who have a phone number
+    if (user.phone && user.phone.trim() !== "") {
+      const row = [
+        `"${user.full_name || ""}"`,
+        `"${user.phone}"`
+      ].join(",");
+      csvContent += row + "\r\n";
+    }
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "happy_family_phone_numbers.csv");
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
