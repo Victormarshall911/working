@@ -246,6 +246,7 @@ function setupEventListeners() {
     .getElementById("globalWithdrawalBtn")
     .addEventListener("click", focusOnTable);
   document.getElementById("exportBtn").addEventListener("click", exportToCSV);
+  document.getElementById("exportPhoneBtn").addEventListener("click", exportPhoneNumbers);
   document.getElementById("printBtn").addEventListener("click", printReport);
   document
     .getElementById("notifyBtn")
@@ -430,6 +431,34 @@ function changePage(direction) {
     currentPage--;
   }
   renderUserTable();
+}
+
+function exportPhoneNumbers() {
+  if (allUsers.length === 0) {
+    showToast("No Data", "There are no users to export.", "warning");
+    return;
+  }
+
+  let csvContent = "data:text/csv;charset=utf-8,";
+  csvContent += "Full Name,Phone Number\n";
+
+  allUsers.forEach((user) => {
+    // Only include users who have a phone number
+    if (user.phone && user.phone.trim() !== "") {
+      const row = [`"${user.full_name || ""}"`, `"${user.phone}"`].join(",");
+      csvContent += row + "\r\n";
+    }
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "happy_family_phone_numbers.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast("Export Started", "Your phone numbers list is downloading.", "success");
 }
 
 function exportToCSV() {
